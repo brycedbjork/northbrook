@@ -3,9 +3,9 @@ set -euo pipefail
 
 BROKER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BROKER_BIN="${BROKER_BIN:-${BROKER_DIR}/.venv/bin/broker}"
-NORTHBROOK_HOME="${NORTHBROOK_HOME:-${HOME}/.northbrook}"
-BROKER_PID_FILE="${BROKER_RUNTIME_PID_FILE:-${NORTHBROOK_HOME}/broker-daemon.pid}"
-BROKER_SOCKET_FILE="${BROKER_RUNTIME_SOCKET_PATH:-${NORTHBROOK_HOME}/broker.sock}"
+NORTHBROOK_STATE_HOME="${XDG_STATE_HOME:-${HOME}/.local/state}/northbrook"
+BROKER_PID_FILE="${NORTHBROOK_STATE_HOME}/broker-daemon.pid"
+BROKER_SOCKET_FILE="${NORTHBROOK_STATE_HOME}/broker.sock"
 
 if [[ ! -x "${BROKER_BIN}" ]]; then
   if command -v broker >/dev/null 2>&1; then

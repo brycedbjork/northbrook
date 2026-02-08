@@ -10,7 +10,15 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 
-DEFAULT_HOME = Path.home() / ".northbrook"
+def _env_path(name: str, fallback: Path) -> Path:
+    raw = os.environ.get(name, "").strip()
+    return Path(raw).expanduser() if raw else fallback.expanduser()
+
+
+_USER_HOME = Path.home()
+DEFAULT_HOME = _env_path("NORTHBROOK_HOME", _USER_HOME / ".northbrook")
+_XDG_STATE_HOME = _env_path("XDG_STATE_HOME", _USER_HOME / ".local" / "state")
+DEFAULT_STATE_HOME = _XDG_STATE_HOME / "northbrook"
 DEFAULT_CONFIG_PATH = DEFAULT_HOME / "config.toml"
 
 
@@ -37,8 +45,8 @@ class RiskConfig(BaseModel):
 
 class LoggingConfig(BaseModel):
     level: str = "INFO"
-    audit_db: Path = DEFAULT_HOME / "audit.db"
-    log_file: Path = DEFAULT_HOME / "broker.log"
+    audit_db: Path = DEFAULT_STATE_HOME / "audit.db"
+    log_file: Path = DEFAULT_STATE_HOME / "broker.log"
     max_log_size_mb: int = 100
 
 
@@ -49,13 +57,13 @@ class AgentConfig(BaseModel):
 
 
 class OutputConfig(BaseModel):
-    default_format: str = "human"
+    default_format: str = "json"
     timezone: str = "America/New_York"
 
 
 class RuntimeConfig(BaseModel):
-    socket_path: Path = DEFAULT_HOME / "broker.sock"
-    pid_file: Path = DEFAULT_HOME / "broker-daemon.pid"
+    socket_path: Path = DEFAULT_STATE_HOME / "broker.sock"
+    pid_file: Path = DEFAULT_STATE_HOME / "broker-daemon.pid"
     request_timeout_seconds: int = 15
 
 

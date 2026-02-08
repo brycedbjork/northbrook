@@ -41,7 +41,7 @@ def root(
     json_output: bool = typer.Option(
         False,
         "--json",
-        help="Emit machine-readable JSON only.",
+        help="Retained for compatibility. Broker CLI output is JSON by default.",
     ),
     config: str | None = typer.Option(
         None,

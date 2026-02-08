@@ -12,5 +12,14 @@
     "jsx": "react-jsx",
     "jsxImportSource": "react"
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "wizard/**/*.ts", "wizard/**/*.tsx"]
+  "include": [
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "wizard/**/*.ts",
+    "wizard/**/*.tsx",
+    "thesis/**/*.ts",
+    "thesis/**/*.tsx",
+    "cli/**/*.ts"
+  ],
+  "exclude": ["**/*.test.ts"]
 }

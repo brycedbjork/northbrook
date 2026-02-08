@@ -6,9 +6,10 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "daemon": "bun src/daemon.ts",
-    "jobs": "bun src/jobs-cli.ts",
-    "status": "bun src/status-cli.ts",
+    "test": "bun test tests",
+    "daemon": "bun daemon/daemon.ts",
+    "jobs": "bun skills/scheduled-jobs/cli.ts",
+    "status": "bun daemon/status-cli.ts",
     "biome:check": "biome check .",
     "biome:fix": "biome check --write .",
     "ultracite:check": "ultracite check .",

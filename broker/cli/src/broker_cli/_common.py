@@ -16,8 +16,6 @@ from typing import Any
 import click
 import typer
 from typer.core import TyperGroup
-from rich.console import Console
-from rich.table import Table
 
 from broker_daemon.config import AppConfig, load_config
 from broker_daemon.exceptions import ErrorCode, BrokerError
@@ -68,11 +66,9 @@ def build_typer(help_text: str) -> typer.Typer:
 
 
 def resolve_json_mode(json_flag: bool, cfg: AppConfig) -> bool:
-    if json_flag:
-        return True
-    if not sys.stdout.isatty():
-        return True
-    return cfg.output.default_format.lower() == "json"
+    _ = json_flag
+    _ = cfg
+    return True
 
 
 def get_state(ctx: typer.Context) -> CLIState:
@@ -87,44 +83,9 @@ def run_async(awaitable: Any) -> Any:
 
 
 def print_output(data: Any, *, json_output: bool, title: str | None = None) -> None:
-    if json_output:
-        print(json.dumps(data, default=str, separators=(",", ":")))
-        return
-
-    console = Console()
-
-    if isinstance(data, list):
-        if not data:
-            console.print("(empty)")
-            return
-        if all(isinstance(item, dict) for item in data):
-            keys: list[str] = []
-            seen: set[str] = set()
-            for item in data:
-                for key in item.keys():
-                    if key in seen:
-                        continue
-                    seen.add(key)
-                    keys.append(key)
-            table = Table(title=title)
-            for key in keys:
-                table.add_column(str(key))
-            for item in data:
-                table.add_row(*[str(item.get(k, "")) for k in keys])
-            console.print(table)
-            return
-
-    if isinstance(data, dict):
-        if all(not isinstance(v, (dict, list)) for v in data.values()):
-            table = Table(title=title)
-            table.add_column("Key")
-            table.add_column("Value")
-            for key, value in data.items():
-                table.add_row(str(key), str(value))
-            console.print(table)
-            return
-
-    console.print_json(json.dumps(data, default=str, indent=2))
+    _ = json_output
+    _ = title
+    print(json.dumps(data, default=str, separators=(",", ":")))
 
 
 def parse_csv_items(raw: str, *, field_name: str) -> list[str]:
@@ -153,15 +114,8 @@ def handle_error(exc: BrokerError, *, json_output: bool) -> None:
     if suggestion and "suggestion" not in error_payload:
         error_payload["suggestion"] = suggestion
     payload = {"ok": False, "error": error_payload}
-    if json_output:
-        print(json.dumps(payload, default=str, separators=(",", ":")))
-    else:
-        console = Console()
-        console.print(f"[red]{exc.code.value}[/red]: {exc.message}")
-        if exc.details:
-            console.print_json(json.dumps(exc.details, default=str, indent=2))
-        if suggestion:
-            console.print(f"Suggestion: {suggestion}")
+    _ = json_output
+    print(json.dumps(payload, default=str, separators=(",", ":")))
     raise typer.Exit(code=exc.exit_code)
 
 

@@ -3,24 +3,26 @@ set -euo pipefail
 
 BROKER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BROKER_BIN="${BROKER_BIN:-${BROKER_DIR}/.venv/bin/broker}"
-NORTHBROOK_HOME="${NORTHBROOK_HOME:-${HOME}/.northbrook}"
-BROKER_PID_FILE="${BROKER_RUNTIME_PID_FILE:-${NORTHBROOK_HOME}/broker-daemon.pid}"
-BROKER_SOCKET_FILE="${BROKER_RUNTIME_SOCKET_PATH:-${NORTHBROOK_HOME}/broker.sock}"
+NORTHBROOK_STATE_HOME="${XDG_STATE_HOME:-${HOME}/.local/state}/northbrook"
+NORTHBROOK_DATA_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/northbrook"
+BROKER_PID_FILE="${NORTHBROOK_STATE_HOME}/broker-daemon.pid"
+BROKER_SOCKET_FILE="${NORTHBROOK_STATE_HOME}/broker.sock"
 LAUNCH_IB="${BROKER_LAUNCH_IB:-1}"
 IB_APP_PATH="${BROKER_IB_APP_PATH:-}"
 IB_WAIT_SECONDS="${BROKER_IB_WAIT_SECONDS:-45}"
 IB_AUTO_LOGIN="${BROKER_IB_AUTO_LOGIN:-0}"
 IB_LOGIN_USERNAME="${BROKER_IB_USERNAME:-}"
 IB_LOGIN_PASSWORD="${BROKER_IB_PASSWORD:-}"
-IBC_PATH="${BROKER_IBC_PATH:-${NORTHBROOK_HOME}/ibc}"
-IBC_INI="${BROKER_IBC_INI:-${NORTHBROOK_HOME}/ibc/config.ini}"
-IBC_LOG_FILE="${BROKER_IBC_LOG_FILE:-${NORTHBROOK_HOME}/logs/ibc-launch.log}"
+IBC_PATH="${NORTHBROOK_DATA_HOME}/ibc"
+IBC_INI="${IBC_PATH}/config.ini"
+IBC_LOG_FILE="${NORTHBROOK_STATE_HOME}/logs/ibc-launch.log"
+IB_SETTINGS_DIR="${NORTHBROOK_STATE_HOME}/ib-settings"
 
 if [[ ! -x "${BROKER_BIN}" ]]; then
   if command -v broker >/dev/null 2>&1; then
     BROKER_BIN="$(command -v broker)"
   else
-    echo "broker CLI not found. Run install.sh first." >&2
+    echo "broker CLI not found. Run install/main.sh first." >&2
     exit 1
   fi
 fi
@@ -104,7 +106,7 @@ if [[ "${SHOW_HELP}" -eq 1 ]]; then
   echo "  --ib-app-path /path/to/App.app"
   echo "  --ib-wait <seconds>"
   echo "  (set BROKER_IB_AUTO_LOGIN=true with BROKER_IB_USERNAME/BROKER_IB_PASSWORD for IBC automated login)"
-  echo "  (IBC files are expected at ${IBC_PATH}; install.sh provisions this automatically)"
+  echo "  (IBC files are expected at ${IBC_PATH}; install/main.sh provisions this automatically)"
   echo
   echo "daemon start options:"
   "${BROKER_BIN}" daemon start --help
@@ -251,13 +253,13 @@ resolve_ibc_tws_major_version() {
 ensure_ibc_ini() {
   local mode="$1"
   mkdir -p "$(dirname "${IBC_INI}")"
-  mkdir -p "${NORTHBROOK_HOME}/ib-settings"
+  mkdir -p "${IB_SETTINGS_DIR}"
 
   if [[ ! -f "${IBC_INI}" && -f "${IBC_PATH}/config.ini" ]]; then
     cp "${IBC_PATH}/config.ini" "${IBC_INI}"
   fi
 
-  python3 - "${IBC_INI}" "${mode}" "${NORTHBROOK_HOME}/ib-settings" <<'PY'
+  python3 - "${IBC_INI}" "${mode}" "${IB_SETTINGS_DIR}" <<'PY'
 import sys
 from pathlib import Path
 
@@ -307,7 +309,7 @@ launch_ib_with_ibc() {
   local mode="$2"
 
   if [[ ! -x "${IBC_PATH}/scripts/ibcstart.sh" ]]; then
-    echo "IBC is not installed at ${IBC_PATH}; run ./install.sh to provision it."
+    echo "IBC is not installed at ${IBC_PATH}; run ./install/main.sh to provision it."
     return 1
   fi
   if ! command -v python3 >/dev/null 2>&1; then

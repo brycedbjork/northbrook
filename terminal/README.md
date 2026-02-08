@@ -1,187 +1,64 @@
-# Northbrook Terminal — Architecture
+# Terminal Service
 
-The terminal is a full-screen TUI (Terminal User Interface) that acts as a command center for observing agents, monitoring the portfolio, and enacting strategy. It is the human interface layer of the Northbrook system.
+The terminal service is the human control plane for Northbrook.
 
-## Technology choices
+## What It Does
 
-| Layer | Choice | Rationale |
-|-------|--------|-----------|
-| Renderer | **Ink v5** (React for CLIs) | Component model, flexbox layout, hooks, focus management. The most mature TS-native TUI framework. |
-| State | **Zustand** | Minimal boilerplate, works outside React (store actions callable from hooks, timers, streams). Single store with domain slices. |
-| Data | **@northbrook/broker-sdk-typescript** | Existing typed SDK with msgpack framing, request/response + streaming. Zero duplication. |
-| Styling | Custom theme module | Centralized color palette, Unicode symbols, box-drawing chars. No runtime CSS. |
-| Build | **TypeScript 5.7**, ESM, Bun source entrypoints | Matches the SDK's compilation target and keeps local iteration fast. |
+- launches the interactive terminal UI
+- surfaces strategy, research, positions, and command workflows
+- provides live pi RPC chat streaming in the chat panel
+- works with broker + agents services that run in the background
 
-## Package structure
+## Launch
 
-```
-terminal/
-├── package.json
-├── tsconfig.json
-├── ARCHITECTURE.md
-└── src/
-    ├── main.tsx                  # Entry point, CLI arg parsing, render()
-    ├── app.tsx                   # Root component: routing, polling, streaming
-    │
-    ├── store/                    # Zustand state management
-    │   ├── types.ts              # State shape interfaces (slices)
-    │   └── index.ts              # Store creation, useTerminal() hook
-    │
-    ├── hooks/                    # React hooks
-    │   ├── use-broker.ts         # Lazy SDK client access
-    │   ├── use-stream.ts         # Event subscription + auto-reconnect
-    │   ├── use-polling.ts        # Periodic data refresh (5s default)
-    │   └── use-keybinds.ts       # Global keyboard shortcut dispatch
-    │
-    ├── screens/                  # Full-screen views (one active at a time)
-    │   ├── dashboard.tsx         # Multi-panel command center overview
-    │   ├── orders.tsx            # Order management + fill history
-    │   ├── strategy.tsx          # Strategy deployment + monitoring
-    │   ├── risk.tsx              # Risk limits, halting, overrides
-    │   ├── agents.tsx            # Agent fleet observation
-    │   └── audit.tsx             # Audit log browser
-    │
-    ├── panels/                   # Composable data panels (used across screens)
-    │   ├── positions.tsx         # Portfolio positions table
-    │   ├── pnl.tsx               # P&L summary with directional arrows
-    │   ├── balance.tsx           # Account balance + margin gauge
-    │   ├── order-book.tsx        # Active orders table
-    │   ├── event-feed.tsx        # Live event stream (color-coded by topic)
-    │   ├── risk-status.tsx       # Risk gauges + halted indicator
-    │   └── agent-status.tsx      # Agent heartbeats, roles, tasks
-    │
-    ├── components/               # Shared UI primitives
-    │   ├── panel.tsx             # Bordered box with title + focus highlight
-    │   ├── table.tsx             # Aligned columnar data with selection
-    │   ├── header.tsx            # Top bar with screen tabs
-    │   ├── status-bar.tsx        # Bottom bar: connection, toasts, key hints
-    │   ├── sparkline.tsx         # Inline Unicode mini-chart
-    │   ├── gauge.tsx             # Horizontal usage bar (margin, risk)
-    │   ├── badge.tsx             # Colored status label
-    │   └── help-overlay.tsx      # Modal with all key bindings
-    │
-    └── lib/                      # Utilities (no React)
-        ├── broker.ts             # SDK client singleton
-        ├── format.ts             # Number, currency, time, duration formatting
-        ├── theme.ts              # Color palette, Unicode symbols, border styles
-        └── keymap.ts             # Key binding definitions + screen map
+```bash
+nb
 ```
 
-## Data flow
+On first launch (when `~/.northbrook/workspace/sessions` is empty), `nb` opens a thesis kickoff TUI before loading the main terminal app. The submitted thesis is sent to the first agent session to seed initial strategies and positions.
 
-```
-  ┌──────────────────────────────────────────────────────────────────┐
-  │                         Daemon (Python)                         │
-  │  IB Gateway ←→ OrderManager ←→ RiskEngine ←→ AuditLogger       │
-  └───────────────────┬────────────────┬─────────────────────────────┘
-                      │ req/resp       │ event stream
-                      │ (msgpack)      │ (msgpack, long-lived)
-  ┌───────────────────┴────────────────┴─────────────────────────────┐
-  │                    TypeScript SDK (Client)                       │
-  │  .positions() .orders() .riskLimits()   .subscribe(topics)      │
-  └───────────────────┬────────────────┬─────────────────────────────┘
-                      │                │
-              ┌───────┴──────┐  ┌──────┴──────┐
-              │  usePolling  │  │  useStream  │
-              │  (5s timer)  │  │  (async gen)│
-              └───────┬──────┘  └──────┬──────┘
-                      │                │
-              ┌───────┴────────────────┴──────┐
-              │        Zustand Store          │
-              │  portfolio │ orders │ risk    │
-              │  agents    │ events │ UI      │
-              └───────────────┬───────────────┘
-                              │
-              ┌───────────────┴───────────────┐
-              │     useTerminal(selector)     │
-              │     React re-renders          │
-              └───────────────┬───────────────┘
-                              │
-              ┌───────────────┴───────────────┐
-              │          Ink Renderer          │
-              │   Header → Screen → StatusBar │
-              │   (flexbox layout to stdout)  │
-              └───────────────────────────────┘
+Open a specific screen:
+
+```bash
+nb --screen=command
+nb --screen=research
+nb --screen=positions
+nb --screen=strategies
 ```
 
-## Screens
+## Pi Chat (Phase 1)
 
-### 1. Dashboard (default)
+- chat input now sends prompts to a live `pi --mode rpc` process
+- primary agent system prompt is loaded from `agents/SYSTEM.md`
+- assistant text streams into the chat view in real time
+- tool execution status is shown inline while the run is active
 
-The primary view. Six panels in a two-column layout:
+## Pi Broker Safety Guards (Phase 2)
 
-```
-┌──────────────────────────────────┬─────────────────┐
-│           Positions              │      P&L        │
-│  symbol  qty  cost  mkt  unrlPL │  realized  ↑    │
-│  AAPL    100  150   155  +500   │  unrealized ↓   │
-│  TSLA    -50  200   195  +250   │  total      →   │
-├────────────────┬─────────────────┤─────────────────│
-│ Active Orders  │   Event Feed   │    Account      │
-│ time side sym  │ 14:23 fill ... │  NLV   $50,000  │
-│ ...            │ 14:22 order ..│  Cash  $12,000  │
-│                │ 14:21 risk ... │  Margin ████░ 40%│
-│                │                ├─────────────────│
-│                │                │      Risk       │
-│                │                │  Position ███░  │
-│                │                │  Loss     ██░░  │
-└────────────────┴────────────────┴─────────────────┘
-```
+- terminal RPC bootstrap auto-loads all skills from `agents/skills/**/SKILL.md`
+- terminal RPC bootstrap auto-loads all extensions from `agents/extensions/**/*.ts|js`
+- `agents/extensions/broker-safety` enforces broker command policy without interactive confirmations
+- RPC dialog requests (`confirm/select/input/editor`) are auto-resolved without user prompts
 
-### 2. Orders
+## Research Workflows (Phase 3)
 
-Full order blotter with all fields, plus recent fills table below.
+- `agents/extensions/research-subagent` provides `research_subagent` tool and `/research-workflow` command
+- terminal RPC bootstrap loads workflow prompts from `agents/subagents/**` (excluding `README.md` and `*.agent.md`)
+- research template commands currently include:
+  - `/research-quick`
+  - `/research-deep`
+  - `/research-compare`
 
-### 3. Strategy
+Environment options:
 
-Strategy deployment view. Shows configured strategies, their assigned agents, allocation percentages, trade counts, and P&L attribution. Supports deploy/pause/stop actions.
+- `NORTHBROOK_PI_BIN` override the `pi` executable path
+- `NORTHBROOK_AI_PROVIDER` provider passed to pi (`anthropic`, `openai`, `google`)
+- `NORTHBROOK_AI_MODEL` override model id passed to pi (defaults to `aiProvider.model` in `~/.northbrook/northbrook.json`)
+- `NORTHBROOK_SYSTEM_PROMPT` override primary system prompt file path
+- `NORTHBROOK_SESSIONS_DIR` pi session directory (defaults to `~/.northbrook/workspace/sessions`)
 
-### 4. Risk
+## Related Docs
 
-Risk limit configuration with current values, gauges for utilization, halted state banner, and allowlist/blocklist display.
-
-### 5. Agents
-
-Agent fleet view. Shows active agents with heartbeat status, latency, current task descriptions, and service health context.
-
-### 6. Audit
-
-Scrollable audit log browser showing all commands executed against the daemon, with source, arguments, and result codes.
-
-## Key bindings
-
-| Key | Action |
-|-----|--------|
-| `1`-`6` | Switch screen |
-| `Tab` | Cycle focused panel |
-| `?` | Toggle help overlay |
-| `:` | Open command palette |
-| `q` | Quit |
-| `r` | Refresh all data (dashboard) |
-| `n` | New order/strategy (context) |
-| `c` / `C` | Cancel selected / cancel all (orders) |
-| `j` / `k` | Navigate rows |
-| `Enter` | View details |
-| `h` / `H` | Halt / resume trading (risk) |
-| `Esc` | Close overlay |
-
-## State slices
-
-| Slice | Responsibility | Update source |
-|-------|---------------|---------------|
-| `PortfolioSlice` | positions, balance, P&L, exposure | Polling (5s) |
-| `OrdersSlice` | orders, fills, selection | Polling + events |
-| `RiskSlice` | limits, halted, overrides | Polling + events |
-| `AgentsSlice` | agent registry, heartbeats | Agent registration API |
-| `EventsSlice` | ring buffer of recent events | Stream subscription |
-| `ConnectionSlice` | daemon status, connectivity | Polling + heartbeat |
-| `UISlice` | active screen, focus, modals, toasts | User input |
-
-## Future extensions
-
-- **Command palette** (`:` key): fuzzy-search over all available commands (quote, order, risk set, etc.) with inline parameter input
-- **ASCII price charts**: sparklines are implemented; full candlestick charts via `asciichart` for the strategy detail view
-- **Agent messaging**: send directives to agents from the terminal (e.g., "increase AAPL allocation to 5%")
-- **Strategy backtesting**: inline backtest results display with equity curve
-- **Multi-account**: tab between accounts when multiple IB sessions are connected
-- **Alerts**: configurable threshold alerts with desktop notifications
+- `terminal/cli/README.md` for the `nb` command surface
+- `broker/README.md` for execution/risk service context
+- `agents/README.md` for background automation context

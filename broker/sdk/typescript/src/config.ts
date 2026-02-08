@@ -6,7 +6,18 @@ import * as toml from "toml";
 
 import type { AppConfig, JsonValue } from "./types.js";
 
-const DEFAULT_HOME = path.join(homedir(), ".northbrook");
+function envOrDefault(name: string, fallback: string): string {
+  const value = process.env[name];
+  if (typeof value === "string" && value.trim()) {
+    return value.trim();
+  }
+  return fallback;
+}
+
+const USER_HOME = homedir();
+const DEFAULT_HOME = envOrDefault("NORTHBROOK_HOME", path.join(USER_HOME, ".northbrook"));
+const XDG_STATE_HOME = envOrDefault("XDG_STATE_HOME", path.join(USER_HOME, ".local", "state"));
+const DEFAULT_STATE_HOME = path.join(XDG_STATE_HOME, "northbrook");
 const DEFAULT_CONFIG_PATH = path.join(DEFAULT_HOME, "config.toml");
 
 const DEFAULT_CONFIG: AppConfig = {
@@ -31,8 +42,8 @@ const DEFAULT_CONFIG: AppConfig = {
   },
   logging: {
     level: "INFO",
-    audit_db: path.join(DEFAULT_HOME, "audit.db"),
-    log_file: path.join(DEFAULT_HOME, "broker.log"),
+    audit_db: path.join(DEFAULT_STATE_HOME, "audit.db"),
+    log_file: path.join(DEFAULT_STATE_HOME, "broker.log"),
     max_log_size_mb: 100
   },
   agent: {
@@ -41,12 +52,12 @@ const DEFAULT_CONFIG: AppConfig = {
     default_output: "json"
   },
   output: {
-    default_format: "human",
+    default_format: "json",
     timezone: "America/New_York"
   },
   runtime: {
-    socket_path: path.join(DEFAULT_HOME, "broker.sock"),
-    pid_file: path.join(DEFAULT_HOME, "broker-daemon.pid"),
+    socket_path: path.join(DEFAULT_STATE_HOME, "broker.sock"),
+    pid_file: path.join(DEFAULT_STATE_HOME, "broker-daemon.pid"),
     request_timeout_seconds: 15
   }
 };
@@ -175,16 +186,13 @@ export async function loadConfig(configPath?: string): Promise<AppConfig> {
 }
 
 export function resolveJsonMode(jsonFlag: boolean, cfg: AppConfig): boolean {
-  if (jsonFlag) {
-    return true;
-  }
-  if (!process.stdout.isTTY) {
-    return true;
-  }
-  return cfg.output.default_format.toLowerCase() === "json";
+  void jsonFlag;
+  void cfg;
+  return true;
 }
 
 export const defaults = {
   DEFAULT_HOME,
+  DEFAULT_STATE_HOME,
   DEFAULT_CONFIG_PATH
 };

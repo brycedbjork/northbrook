@@ -5,13 +5,15 @@
   "packageManager": "bun@1.2.2",
   "type": "module",
   "bin": {
-    "northbrook": "src/main.tsx"
+    "northbrook": "app/main.tsx"
   },
-  "main": "src/main.tsx",
+  "main": "app/main.tsx",
   "scripts": {
+    "test": "bun test cli",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "dev": "bun --watch src/main.tsx",
-    "start": "bun src/main.tsx",
+    "dev": "bun --watch app/main.tsx",
+    "start": "bun app/main.tsx",
+    "thesis": "bun thesis/main.tsx",
     "wizard": "bun wizard/main.tsx",
     "biome:check": "biome check .",
     "biome:fix": "biome check --write .",
@@ -28,6 +30,7 @@
     "react": "^18.3.1",
     "zustand": "^5.0.0",
     "chalk": "^5.4.1",
+    "commander": "^14.0.3",
     "date-fns": "^4.1.0"
   },
   "devDependencies": {

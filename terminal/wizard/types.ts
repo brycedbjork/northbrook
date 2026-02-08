@@ -14,9 +14,20 @@ export type WizardConfig = {
     apiKey: string;
     model: string;
   };
+  heartbeat: {
+    enabled: boolean;
+    intervalMinutes: number;
+  };
   skills: Partial<Record<SkillId, SkillEntry>>;
   ibkrUsername: string;
   ibkrPassword: string;
   ibkrGatewayMode: GatewayMode;
   ibkrAutoLogin: boolean;
+  sec: {
+    appName: string;
+    name: string;
+    email: string;
+    company: string;
+    userAgent: string;
+  };
 };

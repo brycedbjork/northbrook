@@ -2,6 +2,39 @@
 # Shared helpers for the nb CLI.
 # Sourced by nb.sh and subcommand scripts — not executed directly.
 
+: "${NORTHBROOK_HOME:=${HOME}/.northbrook}"
+: "${NORTHBROOK_CONFIG_JSON:=${NORTHBROOK_HOME}/northbrook.json}"
+: "${NORTHBROOK_WORKSPACE:=${NORTHBROOK_HOME}/workspace}"
+: "${NORTHBROOK_SESSIONS_DIR:=${NORTHBROOK_WORKSPACE}/sessions}"
+
+: "${XDG_STATE_HOME:=${HOME}/.local/state}"
+: "${XDG_DATA_HOME:=${HOME}/.local/share}"
+NORTHBROOK_STATE_HOME="${XDG_STATE_HOME}/northbrook"
+NORTHBROOK_DATA_HOME="${XDG_DATA_HOME}/northbrook"
+
+NORTHBROOK_AGENTS_HOME="${NORTHBROOK_STATE_HOME}/agents"
+NORTHBROOK_AGENTS_PID_FILE="${NORTHBROOK_AGENTS_HOME}/agents-daemon.pid"
+NORTHBROOK_AGENTS_STATUS_FILE="${NORTHBROOK_AGENTS_HOME}/agents-daemon.status.json"
+NORTHBROOK_AGENTS_LOG_FILE="${NORTHBROOK_AGENTS_HOME}/agents-daemon.log"
+NORTHBROOK_AGENTS_EXECUTIONS_LOG_FILE="${NORTHBROOK_AGENTS_HOME}/scheduled-job-executions.jsonl"
+
+BROKER_RUNTIME_PID_FILE="${NORTHBROOK_STATE_HOME}/broker-daemon.pid"
+BROKER_RUNTIME_SOCKET_PATH="${NORTHBROOK_STATE_HOME}/broker.sock"
+BROKER_LOGGING_AUDIT_DB="${NORTHBROOK_STATE_HOME}/audit.db"
+BROKER_LOGGING_LOG_FILE="${NORTHBROOK_STATE_HOME}/broker.log"
+BROKER_IBC_PATH="${NORTHBROOK_DATA_HOME}/ibc"
+BROKER_IBC_INI="${BROKER_IBC_PATH}/config.ini"
+BROKER_IBC_LOG_FILE="${NORTHBROOK_STATE_HOME}/logs/ibc-launch.log"
+BROKER_IB_SETTINGS_DIR="${NORTHBROOK_STATE_HOME}/ib-settings"
+
+export NORTHBROOK_HOME NORTHBROOK_CONFIG_JSON NORTHBROOK_WORKSPACE
+export NORTHBROOK_SESSIONS_DIR
+export NORTHBROOK_STATE_HOME NORTHBROOK_DATA_HOME
+export NORTHBROOK_AGENTS_HOME NORTHBROOK_AGENTS_PID_FILE NORTHBROOK_AGENTS_STATUS_FILE
+export NORTHBROOK_AGENTS_LOG_FILE NORTHBROOK_AGENTS_EXECUTIONS_LOG_FILE
+export BROKER_RUNTIME_PID_FILE BROKER_RUNTIME_SOCKET_PATH BROKER_LOGGING_AUDIT_DB BROKER_LOGGING_LOG_FILE
+export BROKER_IBC_PATH BROKER_IBC_INI BROKER_IBC_LOG_FILE BROKER_IB_SETTINGS_DIR
+
 load_northbrook_secrets() {
   local cfg="${NORTHBROOK_CONFIG_JSON}"
   if [[ ! -f "${cfg}" ]]; then
@@ -74,6 +107,30 @@ if x_api_key:
     print(f"X_API_KEY={x_api_key}")
 if brave_search_api_key:
     print(f"BRAVE_SEARCH_API_KEY={brave_search_api_key}")
+    print(f"BRAVE_API_KEY={brave_search_api_key}")
+
+sec_cfg = data.get("sec")
+if isinstance(sec_cfg, dict):
+    sec_user_agent = as_non_empty_str(sec_cfg.get("userAgent"))
+    sec_app_name = as_non_empty_str(sec_cfg.get("appName")) or "Northbrook"
+    sec_name = as_non_empty_str(sec_cfg.get("name"))
+    sec_email = as_non_empty_str(sec_cfg.get("email"))
+    sec_company = as_non_empty_str(sec_cfg.get("company"))
+else:
+    sec_user_agent = ""
+    sec_app_name = "Northbrook"
+    sec_name = ""
+    sec_email = ""
+    sec_company = ""
+
+if not sec_user_agent:
+    contact_parts = [part for part in (sec_name, sec_company, sec_email) if part]
+    sec_user_agent = f"{sec_app_name}/1.0"
+    if contact_parts:
+        sec_user_agent = f"{sec_user_agent} ({', '.join(contact_parts)})"
+
+if sec_user_agent:
+    print(f"SEC_USER_AGENT={sec_user_agent}")
 
 ibkr_username = as_non_empty_str(data.get("ibkrUsername"))
 ibkr_password = as_non_empty_str(data.get("ibkrPassword"))
@@ -162,24 +219,24 @@ run_broker_start() {
 }
 
 run_agents_start() {
-  if [[ ! -x "${ROOT_DIR}/agents/start.sh" ]]; then
-    echo "agents/start.sh not found or not executable at ${ROOT_DIR}/agents/start.sh" >&2
+  if [[ ! -x "${ROOT_DIR}/agents/daemon/start.sh" ]]; then
+    echo "agents/daemon/start.sh not found or not executable at ${ROOT_DIR}/agents/daemon/start.sh" >&2
     return 1
   fi
-  "${ROOT_DIR}/agents/start.sh"
+  "${ROOT_DIR}/agents/daemon/start.sh"
 }
 
 run_agents_stop() {
-  if [[ ! -x "${ROOT_DIR}/agents/stop.sh" ]]; then
-    echo "agents/stop.sh not found or not executable at ${ROOT_DIR}/agents/stop.sh" >&2
+  if [[ ! -x "${ROOT_DIR}/agents/daemon/stop.sh" ]]; then
+    echo "agents/daemon/stop.sh not found or not executable at ${ROOT_DIR}/agents/daemon/stop.sh" >&2
     return 1
   fi
-  "${ROOT_DIR}/agents/stop.sh"
+  "${ROOT_DIR}/agents/daemon/stop.sh"
 }
 
 run_agents_status() {
-  if [[ ! -x "${ROOT_DIR}/agents/status.sh" ]]; then
+  if [[ ! -x "${ROOT_DIR}/agents/daemon/status.sh" ]]; then
     return 1
   fi
-  "${ROOT_DIR}/agents/status.sh"
+  "${ROOT_DIR}/agents/daemon/status.sh"
 }

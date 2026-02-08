@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from enum import Enum
+import json
 import time
 
 import typer
@@ -75,19 +76,15 @@ def watch(
     interval: str = typer.Option("1s", "--interval", help="Refresh interval (e.g. 250ms, 1s, 2m)."),
 ) -> None:
     state = get_state(ctx)
-    if state.json_output:
-        raise typer.BadParameter("watch is not supported in --json mode; use agent subscribe")
-
     interval_seconds = _parse_interval(interval)
     chosen_fields = _parse_fields(fields)
-    print(" | ".join(chosen_fields))
 
     try:
         while True:
             data = run_async(daemon_request(state, "quote.snapshot", {"symbols": [symbol], "force": True}))
             quote = (data.get("quotes") or [{}])[0]
-            row = [str(quote.get(field, "")) for field in chosen_fields]
-            print(" | ".join(row))
+            row = {field: quote.get(field, "") for field in chosen_fields}
+            print(json.dumps(row, default=str, separators=(",", ":")))
             time.sleep(interval_seconds)
     except KeyboardInterrupt:
         return

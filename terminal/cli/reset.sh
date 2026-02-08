@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# nb reset — wipe ~/.northbrook and reinitialize defaults.
+# nb reset — wipe config/workspace and runtime data/state, then reinitialize defaults.
 # Sourced environment: ROOT_DIR, NORTHBROOK_HOME, NORTHBROOK_CONFIG_JSON,
-#   NORTHBROOK_WORKSPACE, and _lib.sh helpers.
+#   NORTHBROOK_WORKSPACE, NORTHBROOK_STATE_HOME, NORTHBROOK_DATA_HOME,
+#   and _lib.sh helpers.
 
 force=0
 for arg in "$@"; do
@@ -23,6 +24,14 @@ if [[ -z "${NORTHBROOK_HOME}" || "${NORTHBROOK_HOME}" == "/" || "${NORTHBROOK_HO
   echo "Refusing to reset unsafe NORTHBROOK_HOME path: ${NORTHBROOK_HOME}" >&2
   exit 1
 fi
+if [[ -z "${NORTHBROOK_STATE_HOME}" || "${NORTHBROOK_STATE_HOME}" == "/" || "${NORTHBROOK_STATE_HOME}" == "${HOME}" ]]; then
+  echo "Refusing to reset unsafe NORTHBROOK_STATE_HOME path: ${NORTHBROOK_STATE_HOME}" >&2
+  exit 1
+fi
+if [[ -z "${NORTHBROOK_DATA_HOME}" || "${NORTHBROOK_DATA_HOME}" == "/" || "${NORTHBROOK_DATA_HOME}" == "${HOME}" ]]; then
+  echo "Refusing to reset unsafe NORTHBROOK_DATA_HOME path: ${NORTHBROOK_DATA_HOME}" >&2
+  exit 1
+fi
 
 if [[ "${force}" -eq 0 ]]; then
   if [[ ! -t 0 || ! -t 1 ]]; then
@@ -30,6 +39,8 @@ if [[ "${force}" -eq 0 ]]; then
     exit 1
   fi
   echo "This will permanently delete: ${NORTHBROOK_HOME}"
+  echo "This will also clear runtime state: ${NORTHBROOK_STATE_HOME}"
+  echo "This will also clear local runtime data: ${NORTHBROOK_DATA_HOME}"
   echo "Running broker/agents services will be stopped first."
   printf "Type RESET to confirm: "
   read -r confirm
@@ -45,10 +56,13 @@ if [[ -x "${ROOT_DIR}/broker/stop.sh" ]]; then
 fi
 
 rm -rf "${NORTHBROOK_HOME}"
+rm -rf "${NORTHBROOK_STATE_HOME}"
+rm -rf "${NORTHBROOK_DATA_HOME}"
 
 mkdir -p "${NORTHBROOK_HOME}"
-mkdir -p "${NORTHBROOK_HOME}/logs"
 mkdir -p "${NORTHBROOK_WORKSPACE}"
+mkdir -p "${NORTHBROOK_STATE_HOME}/logs"
+mkdir -p "${NORTHBROOK_DATA_HOME}"
 
 if ! command -v git >/dev/null 2>&1; then
   echo "git is required to reinitialize ${NORTHBROOK_WORKSPACE}." >&2
@@ -100,7 +114,18 @@ data = {
         "apiKey": "",
         "model": "claude-sonnet-4-5",
     },
+    "heartbeat": {
+        "enabled": True,
+        "intervalMinutes": 30,
+    },
     "skills": {},
+    "sec": {
+        "appName": "Northbrook",
+        "name": "",
+        "email": "",
+        "company": "",
+        "userAgent": "Northbrook/1.0",
+    },
     "ibkrUsername": "",
     "ibkrPassword": "",
     "ibkrGatewayMode": "paper",
@@ -111,5 +136,5 @@ os.chmod(config_path, 0o600)
 PY
 
 echo "Reset complete."
-echo "Reinitialized ${NORTHBROOK_HOME} to default state."
+echo "Reinitialized ${NORTHBROOK_HOME} (config/workspace), ${NORTHBROOK_STATE_HOME} (runtime), and ${NORTHBROOK_DATA_HOME} (data)."
 echo "Run \`nb setup\` to configure credentials and providers."

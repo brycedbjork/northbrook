@@ -24,6 +24,10 @@ type Stage =
   | "providerModel"
   | "skills"
   | "skillApiKey"
+  | "secAppName"
+  | "secName"
+  | "secEmail"
+  | "secCompany"
   | "review"
   | "done";
 
@@ -87,6 +91,10 @@ const STAGE_ORDER: Stage[] = [
   "providerModel",
   "skills",
   "skillApiKey",
+  "secAppName",
+  "secName",
+  "secEmail",
+  "secCompany",
   "review",
   "done",
 ];
@@ -107,6 +115,23 @@ function maskSecret(value: string): string {
     return "not set";
   }
   return "********";
+}
+
+function buildSecUserAgent(input: {
+  appName: string;
+  name: string;
+  email: string;
+  company: string;
+}): string {
+  const appName = input.appName.trim() || "Northbrook";
+  const base = `${appName}/1.0`;
+  const contactParts = [input.name.trim(), input.company.trim(), input.email.trim()].filter(
+    (part) => part.length > 0
+  );
+  if (contactParts.length === 0) {
+    return base;
+  }
+  return `${base} (${contactParts.join(", ")})`;
 }
 
 function frame({ step, totalSteps, title, subtitle, hint, children }: FrameProps) {
@@ -375,6 +400,10 @@ function ReviewStep({
         <Text>IB username: {config.ibkrUsername || "(not set)"}</Text>
         <Text>IB password: {maskSecret(config.ibkrPassword)}</Text>
         <Text>IBC auto login: {config.ibkrAutoLogin ? "enabled" : "disabled"}</Text>
+        <Text>SEC app name: {config.sec.appName || "(not set)"}</Text>
+        <Text>SEC contact: {config.sec.name || "(not set)"} | {config.sec.email || "(not set)"}</Text>
+        <Text>SEC company: {config.sec.company || "(not set)"}</Text>
+        <Text>SEC user agent: {config.sec.userAgent || "(not set)"}</Text>
         <Text>Configured keys:</Text>
         <Text>  aiProvider.apiKey={configuredFlag(config.aiProvider.apiKey)}</Text>
         <Text>
@@ -413,6 +442,7 @@ function DoneStep({ configPath, config }: { configPath: string; config: WizardCo
         <Text>AI provider: {config.aiProvider.provider}</Text>
         <Text>AI model: {config.aiProvider.model || "(not set)"}</Text>
         <Text>IB mode: {config.ibkrGatewayMode}</Text>
+        <Text>SEC user agent: {config.sec.userAgent || "(not set)"}</Text>
         <Text>Configured keys:</Text>
         <Text>  aiProvider.apiKey={configuredFlag(config.aiProvider.apiKey)}</Text>
         <Text>
@@ -481,13 +511,29 @@ function WizardApp({ configPath, initialConfig }: { configPath: string; initialC
       }
       return;
     }
-    if (stage === "review") {
+    if (stage === "secAppName") {
       if (skillQueue.length > 0) {
         setSkillCursor(Math.max(skillQueue.length - 1, 0));
         setStage("skillApiKey");
       } else {
         setStage("skills");
       }
+      return;
+    }
+    if (stage === "secName") {
+      setStage("secAppName");
+      return;
+    }
+    if (stage === "secEmail") {
+      setStage("secName");
+      return;
+    }
+    if (stage === "secCompany") {
+      setStage("secEmail");
+      return;
+    }
+    if (stage === "review") {
+      setStage("secCompany");
       return;
     }
     if (stage === "done") {
@@ -683,7 +729,7 @@ function WizardApp({ configPath, initialConfig }: { configPath: string; initialC
           setSkillQueue(selectedSkills as SkillId[]);
           setSkillCursor(0);
           if (selectedSkills.length === 0) {
-            setStage("review");
+            setStage("secAppName");
           } else {
             setStage("skillApiKey");
           }
@@ -722,6 +768,127 @@ function WizardApp({ configPath, initialConfig }: { configPath: string; initialC
             setSkillCursor((index) => index + 1);
             return;
           }
+          setStage("secAppName");
+        }}
+      />
+    );
+  }
+
+  if (stage === "secAppName") {
+    return (
+      <TextEntryStep
+        step={stageNumber(stage)}
+        totalSteps={STAGE_ORDER.length}
+        title="4) SEC filing identity"
+        subtitle="Set the application name used in SEC request user-agent."
+        label="SEC app name"
+        initialValue={config.sec.appName}
+        onBack={goBack}
+        onSubmit={(value) => {
+          const appName = value || config.sec.appName || "Northbrook";
+          setConfig((current) => {
+            const next = {
+              ...current.sec,
+              appName,
+            };
+            return {
+              ...current,
+              sec: {
+                ...next,
+                userAgent: buildSecUserAgent(next),
+              },
+            };
+          });
+          setStage("secName");
+        }}
+      />
+    );
+  }
+
+  if (stage === "secName") {
+    return (
+      <TextEntryStep
+        step={stageNumber(stage)}
+        totalSteps={STAGE_ORDER.length}
+        title="4) SEC filing identity"
+        subtitle="Provide the contact name for SEC traffic identification."
+        label="Contact name"
+        initialValue={config.sec.name}
+        onBack={goBack}
+        onSubmit={(value) => {
+          setConfig((current) => {
+            const next = {
+              ...current.sec,
+              name: value,
+            };
+            return {
+              ...current,
+              sec: {
+                ...next,
+                userAgent: buildSecUserAgent(next),
+              },
+            };
+          });
+          setStage("secEmail");
+        }}
+      />
+    );
+  }
+
+  if (stage === "secEmail") {
+    return (
+      <TextEntryStep
+        step={stageNumber(stage)}
+        totalSteps={STAGE_ORDER.length}
+        title="4) SEC filing identity"
+        subtitle="Provide a reachable email for SEC user-agent contact."
+        label="Contact email"
+        initialValue={config.sec.email}
+        onBack={goBack}
+        onSubmit={(value) => {
+          setConfig((current) => {
+            const next = {
+              ...current.sec,
+              email: value,
+            };
+            return {
+              ...current,
+              sec: {
+                ...next,
+                userAgent: buildSecUserAgent(next),
+              },
+            };
+          });
+          setStage("secCompany");
+        }}
+      />
+    );
+  }
+
+  if (stage === "secCompany") {
+    return (
+      <TextEntryStep
+        step={stageNumber(stage)}
+        totalSteps={STAGE_ORDER.length}
+        title="4) SEC filing identity"
+        subtitle="Optional organization/company name for SEC user-agent."
+        label="Company (optional)"
+        initialValue={config.sec.company}
+        onBack={goBack}
+        onSubmit={(value) => {
+          setConfig((current) => {
+            const next = {
+              ...current.sec,
+              company: value,
+            };
+            return {
+              ...current,
+              sec: {
+                ...next,
+                userAgent: buildSecUserAgent(next),
+              },
+            };
+          });
           setStage("review");
         }}
       />
@@ -778,7 +945,8 @@ function resolveConfigPath(args: string[]): string {
     return envPath;
   }
 
-  return path.join(homedir(), ".northbrook", "northbrook.json");
+  const home = process.env.NORTHBROOK_HOME?.trim() || path.join(homedir(), ".northbrook");
+  return path.join(home, "northbrook.json");
 }
 
 function runHeadless(configPath: string): void {

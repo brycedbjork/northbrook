@@ -1,0 +1,160 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  broker-cli-smoke:
+    name: "🐍 Broker CLI Smoke"
+    runs-on: ubuntu-latest
+    env:
+      BROKER_LAUNCH_IB: "0"
+
+    steps:
+      - name: "📥 Checkout"
+        uses: actions/checkout@v4
+
+      - name: "🐍 Setup Python 3.12"
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: "⚡ Setup uv"
+        uses: astral-sh/setup-uv@v5
+
+      - name: "📦 Install broker Python packages"
+        working-directory: broker
+        run: |
+          uv venv --python 3.12 --seed --allow-existing
+          .venv/bin/python -m pip install -e './daemon[dev]' -e './sdk/python[dev]' -e './cli[dev]'
+
+      - name: "🧪 Run broker --help smoke check"
+        working-directory: broker
+        run: .venv/bin/broker --help
+
+  broker-python-tests:
+    name: "🐍 PyTest • ${{ matrix.suite_name }}"
+    runs-on: ubuntu-latest
+    env:
+      BROKER_LAUNCH_IB: "0"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - suite_name: "daemon"
+            suite_path: "daemon/tests"
+          - suite_name: "cli"
+            suite_path: "cli/tests"
+          - suite_name: "sdk-python"
+            suite_path: "sdk/python/tests"
+
+    steps:
+      - name: "📥 Checkout"
+        uses: actions/checkout@v4
+
+      - name: "🐍 Setup Python 3.12"
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: "⚡ Setup uv"
+        uses: astral-sh/setup-uv@v5
+
+      - name: "📦 Install broker Python packages"
+        working-directory: broker
+        run: |
+          uv venv --python 3.12 --seed --allow-existing
+          .venv/bin/python -m pip install -e './daemon[dev]' -e './sdk/python[dev]' -e './cli[dev]'
+
+      - name: "🧪 Run pytest (${{ matrix.suite_name }})"
+        working-directory: broker
+        run: .venv/bin/python -m pytest "${{ matrix.suite_path }}" -q
+
+  typescript-typechecks:
+    name: "🧩 Typecheck • ${{ matrix.target_name }}"
+    runs-on: ubuntu-latest
+    env:
+      BROKER_LAUNCH_IB: "0"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target_name: "broker-sdk"
+            target_dir: "broker/sdk/typescript"
+          - target_name: "agents"
+            target_dir: "agents"
+          - target_name: "terminal"
+            target_dir: "terminal"
+
+    steps:
+      - name: "📥 Checkout"
+        uses: actions/checkout@v4
+
+      - name: "🥟 Setup Bun"
+        uses: oven-sh/setup-bun@v2
+
+      - name: "📦 Install dependencies (${{ matrix.target_name }})"
+        run: cd "${{ matrix.target_dir }}" && bun install
+
+      - name: "🧪 Run typecheck (${{ matrix.target_name }})"
+        run: cd "${{ matrix.target_dir }}" && bun run typecheck
+
+  terminal-cli-tests:
+    name: "🖥️ Terminal CLI Tests"
+    runs-on: ubuntu-latest
+    env:
+      BROKER_LAUNCH_IB: "0"
+
+    steps:
+      - name: "📥 Checkout"
+        uses: actions/checkout@v4
+
+      - name: "🥟 Setup Bun"
+        uses: oven-sh/setup-bun@v2
+
+      - name: "📦 Install terminal dependencies"
+        run: cd terminal && bun install
+
+      - name: "🧪 Run terminal CLI test suite"
+        run: cd terminal && bun run test
+
+  nb-help-smoke:
+    name: "🧭 NB Help Smoke"
+    runs-on: ubuntu-latest
+    env:
+      BROKER_LAUNCH_IB: "0"
+
+    steps:
+      - name: "📥 Checkout"
+        uses: actions/checkout@v4
+
+      - name: "🥟 Setup Bun"
+        uses: oven-sh/setup-bun@v2
+
+      - name: "📦 Install terminal dependencies"
+        run: cd terminal && bun install
+
+      - name: "🧪 Run nb --help"
+        run: cd terminal && bun cli/nb.ts --help
+
+      - name: "🧪 Run nb run --help"
+        run: cd terminal && bun cli/nb.ts run --help
+
+  shell-script-syntax:
+    name: "🐚 Shell Script Syntax"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "📥 Checkout"
+        uses: actions/checkout@v4
+
+      - name: "🧪 Validate bash syntax"
+        run: find . -type f -name '*.sh' -not -path '*/node_modules/*' -print0 | xargs -0 -n1 bash -n

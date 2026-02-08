@@ -34,12 +34,44 @@ function normalizeGatewayMode(value: unknown): GatewayMode {
   return "paper";
 }
 
+function normalizeHeartbeatInterval(value: unknown): number {
+  if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+    return value;
+  }
+  if (typeof value === "string") {
+    const parsed = Number.parseFloat(value.trim());
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+  return DEFAULT_CONFIG.heartbeat.intervalMinutes;
+}
+
+function buildSecUserAgent(input: {
+  appName: string;
+  name: string;
+  email: string;
+  company: string;
+}): string {
+  const appName = asNonEmptyString(input.appName) || "Northbrook";
+  const base = `${appName}/1.0`;
+  const contactParts = [input.name, input.company, input.email]
+    .map((value) => asNonEmptyString(value))
+    .filter((value) => value.length > 0);
+  if (contactParts.length === 0) {
+    return base;
+  }
+  return `${base} (${contactParts.join(", ")})`;
+}
+
 export function normalizeConfig(raw: unknown): WizardConfig {
   const source = isRecord(raw) ? raw : {};
 
   const aiProviderRaw = isRecord(source.aiProvider) ? source.aiProvider : {};
   const provider = normalizeProvider(aiProviderRaw.provider);
   const model = asNonEmptyString(aiProviderRaw.model) || DEFAULT_MODELS[provider];
+  const heartbeatRaw = isRecord(source.heartbeat) ? source.heartbeat : {};
+  const secRaw = isRecord(source.sec) ? source.sec : {};
 
   const rawSkills = isRecord(source.skills) ? source.skills : {};
   const skills: WizardConfig["skills"] = {};
@@ -52,17 +84,41 @@ export function normalizeConfig(raw: unknown): WizardConfig {
     }
   }
 
+  const secAppName = asNonEmptyString(secRaw.appName) || DEFAULT_CONFIG.sec.appName;
+  const secName = asNonEmptyString(secRaw.name);
+  const secEmail = asNonEmptyString(secRaw.email);
+  const secCompany = asNonEmptyString(secRaw.company);
+  const secUserAgent =
+    asNonEmptyString(secRaw.userAgent) ||
+    buildSecUserAgent({
+      appName: secAppName,
+      name: secName,
+      email: secEmail,
+      company: secCompany,
+    });
+
   return {
     aiProvider: {
       provider,
       apiKey: asNonEmptyString(aiProviderRaw.apiKey),
       model,
     },
+    heartbeat: {
+      enabled: typeof heartbeatRaw.enabled === "boolean" ? heartbeatRaw.enabled : DEFAULT_CONFIG.heartbeat.enabled,
+      intervalMinutes: normalizeHeartbeatInterval(heartbeatRaw.intervalMinutes),
+    },
     skills,
     ibkrUsername: asNonEmptyString(source.ibkrUsername),
     ibkrPassword: asNonEmptyString(source.ibkrPassword),
     ibkrGatewayMode: normalizeGatewayMode(source.ibkrGatewayMode),
     ibkrAutoLogin: Boolean(source.ibkrAutoLogin),
+    sec: {
+      appName: secAppName,
+      name: secName,
+      email: secEmail,
+      company: secCompany,
+      userAgent: secUserAgent,
+    },
   };
 }
 

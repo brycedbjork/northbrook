@@ -27,6 +27,7 @@ python3 - "${NORTHBROOK_CONFIG_JSON}" "${daemon_status_json}" "${agents_status_j
 import json
 import sys
 from pathlib import Path
+import os
 
 cfg_path = Path(sys.argv[1])
 broker_raw = sys.argv[2] if len(sys.argv) > 2 else ""
@@ -80,6 +81,15 @@ def configured_skill_key(skill_name: str) -> str:
                 return "yes"
     return "no"
 
+def configured_sec_user_agent() -> str:
+    sec = cfg.get("sec")
+    if not isinstance(sec, dict):
+        return "no"
+    value = sec.get("userAgent")
+    if isinstance(value, str) and value.strip():
+        return "yes"
+    return "no"
+
 def symbol(ok: bool) -> str:
     return "●" if ok else "○"
 
@@ -124,9 +134,11 @@ mode = cfg.get("ibkrGatewayMode") or "paper"
 print("────────────────────────────────────────────────────────")
 print(f"AI provider : {provider}")
 print(f"IB mode     : {mode}")
-print(f"Workspace   : {Path.home() / '.northbrook' / 'workspace'}")
+workspace = os.environ.get("NORTHBROOK_WORKSPACE") or str(Path.home() / ".northbrook" / "workspace")
+print(f"Workspace   : {workspace}")
 print("Configured keys")
 print(f"- aiProvider.apiKey: {configured_ai_provider_key()}")
 print(f"- skills.xApi: {configured_skill_key('xApi')}")
 print(f"- skills.braveSearchApi: {configured_skill_key('braveSearchApi')}")
+print(f"- sec.userAgent: {configured_sec_user_agent()}")
 PY

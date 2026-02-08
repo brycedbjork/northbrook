@@ -10,5 +10,8 @@
     "types": ["node"],
     "noEmit": true
   },
-  "include": ["src"]
+  "include": [
+    "daemon/**/*.ts",
+    "skills/scheduled-jobs/**/*.ts"
+  ]
 }

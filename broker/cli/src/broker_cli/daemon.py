@@ -32,7 +32,7 @@ def start(
 
     code = start_daemon_process(state.config_path, state.config, extra_env=env or None)
     if code != 0:
-        typer.echo("Failed to start daemon. Check ~/.northbrook/broker.log for startup errors.", err=True)
+        typer.echo("Failed to start daemon. Check broker log (default: ~/.local/state/northbrook/broker.log).", err=True)
         raise typer.Exit(code=1)
 
     print_output({"ok": True, "socket": str(state.config.runtime.socket_path)}, json_output=state.json_output)
@@ -72,6 +72,6 @@ def restart(
     env = {"BROKER_GATEWAY_PORT": "4002"} if paper else None
     code = start_daemon_process(state.config_path, state.config, extra_env=env)
     if code != 0:
-        typer.echo("Failed to restart daemon. Check ~/.northbrook/broker.log for details.", err=True)
+        typer.echo("Failed to restart daemon. Check broker log (default: ~/.local/state/northbrook/broker.log).", err=True)
         raise typer.Exit(code=1)
     print_output({"ok": True}, json_output=state.json_output)

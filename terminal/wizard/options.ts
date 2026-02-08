@@ -75,9 +75,20 @@ export const DEFAULT_CONFIG: WizardConfig = {
     apiKey: "",
     model: DEFAULT_MODELS.anthropic,
   },
+  heartbeat: {
+    enabled: true,
+    intervalMinutes: 30,
+  },
   skills: {},
   ibkrUsername: "",
   ibkrPassword: "",
   ibkrGatewayMode: "paper",
   ibkrAutoLogin: false,
+  sec: {
+    appName: "Northbrook",
+    name: "",
+    email: "",
+    company: "",
+    userAgent: "Northbrook/1.0",
+  },
 };

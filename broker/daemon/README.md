@@ -1,14 +1,25 @@
-# daemon
+# Broker Daemon
 
-Daemon/runtime package for IB execution:
+`broker-daemon` is the long-running backend for the broker service.
 
-- `broker-daemon` process and command routing
-- IB connection manager
-- risk/audit engines
-- shared protocol and domain models consumed by Python/TS SDKs
+## Responsibilities
 
-## Reliability and Tests
+- maintain connection/session state to IB Gateway or TWS
+- route requests from CLI/SDK clients
+- enforce risk controls before execution
+- persist audit events for operational traceability
 
-- Validation hardening for malformed RPC payloads (`INVALID_ARGS` with suggestions)
-- Connection error mapping (`IB_DISCONNECTED`, `TIMEOUT`, `INVALID_SYMBOL`, `IB_REJECTED`)
-- Recovery and stress tests under `tests/test_daemon/`
+## Interfaces
+
+- local CLI: `broker`
+- SDKs: `broker_sdk` (Python), `@northbrook/broker-sdk-typescript`
+
+## Runtime Context
+
+Service lifecycle is managed through `nb`:
+
+```bash
+nb start
+nb status
+nb stop
+```
