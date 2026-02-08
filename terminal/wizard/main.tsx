@@ -28,8 +28,7 @@ type Stage =
   | "secName"
   | "secEmail"
   | "secCompany"
-  | "review"
-  | "done";
+  | "review";
 
 type FrameProps = {
   step: number;
@@ -96,7 +95,6 @@ const STAGE_ORDER: Stage[] = [
   "secEmail",
   "secCompany",
   "review",
-  "done",
 ];
 
 function stageNumber(stage: Stage): number {
@@ -417,47 +415,9 @@ function ReviewStep({
   });
 }
 
-function DoneStep({ configPath, config }: { configPath: string; config: WizardConfig }) {
-  const { exit } = useApp();
-
-  useInput((_, key) => {
-    if (key.return || key.escape) {
-      exit();
-    }
-  });
-
-  const skillKeys = SKILL_OPTIONS
-    .filter((skill) => config.skills[skill.id])
-    .map((skill) => `${skill.id}=${configuredFlag(config.skills[skill.id]?.apiKey ?? "")}`);
-
-  return frame({
-    step: STAGE_ORDER.length,
-    totalSteps: STAGE_ORDER.length,
-    title: "Onboarding complete",
-    subtitle: "Your settings were saved.",
-    hint: "Press Enter to close",
-    children: (
-      <Box flexDirection="column">
-        <Text color="green">Saved config: {configPath}</Text>
-        <Text>AI provider: {config.aiProvider.provider}</Text>
-        <Text>AI model: {config.aiProvider.model || "(not set)"}</Text>
-        <Text>IB mode: {config.ibkrGatewayMode}</Text>
-        <Text>SEC user agent: {config.sec.userAgent || "(not set)"}</Text>
-        <Text>Configured keys:</Text>
-        <Text>  aiProvider.apiKey={configuredFlag(config.aiProvider.apiKey)}</Text>
-        <Text>
-          {skillKeys.length > 0
-            ? `  ${skillKeys.join(" ")}`
-            : "  skills.xApi=no skills.braveSearchApi=no"}
-        </Text>
-      </Box>
-    ),
-  });
-}
-
 function WizardApp({ configPath, initialConfig }: { configPath: string; initialConfig: WizardConfig }) {
+  const { exit } = useApp();
   const [config, setConfig] = useState<WizardConfig>(initialConfig);
-  const [savedConfig, setSavedConfig] = useState<WizardConfig>(initialConfig);
   const [stage, setStage] = useState<Stage>("ibkrUsername");
   const [skillQueue, setSkillQueue] = useState<SkillId[]>([]);
   const [skillCursor, setSkillCursor] = useState(0);
@@ -536,14 +496,12 @@ function WizardApp({ configPath, initialConfig }: { configPath: string; initialC
       setStage("secCompany");
       return;
     }
-    if (stage === "done") {
-      setStage("review");
-    }
   };
 
   if (stage === "ibkrUsername") {
     return (
       <TextEntryStep
+        key={stage}
         step={stageNumber(stage)}
         totalSteps={STAGE_ORDER.length}
         title="1) Interactive Brokers"
@@ -561,6 +519,7 @@ function WizardApp({ configPath, initialConfig }: { configPath: string; initialC
   if (stage === "ibkrPassword") {
     return (
       <TextEntryStep
+        key={stage}
         step={stageNumber(stage)}
         totalSteps={STAGE_ORDER.length}
         title="1) Interactive Brokers"
@@ -584,6 +543,7 @@ function WizardApp({ configPath, initialConfig }: { configPath: string; initialC
   if (stage === "gatewayMode") {
     return (
       <SingleChoiceStep
+        key={stage}
         step={stageNumber(stage)}
         totalSteps={STAGE_ORDER.length}
         title="1) Interactive Brokers"
@@ -602,6 +562,7 @@ function WizardApp({ configPath, initialConfig }: { configPath: string; initialC
   if (stage === "autoLogin") {
     return (
       <SingleChoiceStep
+        key={stage}
         step={stageNumber(stage)}
         totalSteps={STAGE_ORDER.length}
         title="1) Interactive Brokers"
@@ -623,6 +584,7 @@ function WizardApp({ configPath, initialConfig }: { configPath: string; initialC
   if (stage === "provider") {
     return (
       <SingleChoiceStep
+        key={stage}
         step={stageNumber(stage)}
         totalSteps={STAGE_ORDER.length}
         title="2) AI provider"
@@ -654,6 +616,7 @@ function WizardApp({ configPath, initialConfig }: { configPath: string; initialC
   if (stage === "providerApiKey") {
     return (
       <TextEntryStep
+        key={stage}
         step={stageNumber(stage)}
         totalSteps={STAGE_ORDER.length}
         title="2) AI provider"
@@ -680,6 +643,7 @@ function WizardApp({ configPath, initialConfig }: { configPath: string; initialC
   if (stage === "providerModel") {
     return (
       <TextEntryStep
+        key={stage}
         step={stageNumber(stage)}
         totalSteps={STAGE_ORDER.length}
         title="2) AI provider"
@@ -705,6 +669,7 @@ function WizardApp({ configPath, initialConfig }: { configPath: string; initialC
   if (stage === "skills") {
     return (
       <MultiChoiceStep
+        key={stage}
         step={stageNumber(stage)}
         totalSteps={STAGE_ORDER.length}
         title="3) Skills (optional)"
@@ -744,6 +709,7 @@ function WizardApp({ configPath, initialConfig }: { configPath: string; initialC
 
     return (
       <TextEntryStep
+        key={`${stage}-${currentSkill}`}
         step={stageNumber(stage)}
         totalSteps={STAGE_ORDER.length}
         title={skillTitle}
@@ -777,6 +743,7 @@ function WizardApp({ configPath, initialConfig }: { configPath: string; initialC
   if (stage === "secAppName") {
     return (
       <TextEntryStep
+        key={stage}
         step={stageNumber(stage)}
         totalSteps={STAGE_ORDER.length}
         title="4) SEC filing identity"
@@ -808,6 +775,7 @@ function WizardApp({ configPath, initialConfig }: { configPath: string; initialC
   if (stage === "secName") {
     return (
       <TextEntryStep
+        key={stage}
         step={stageNumber(stage)}
         totalSteps={STAGE_ORDER.length}
         title="4) SEC filing identity"
@@ -838,6 +806,7 @@ function WizardApp({ configPath, initialConfig }: { configPath: string; initialC
   if (stage === "secEmail") {
     return (
       <TextEntryStep
+        key={stage}
         step={stageNumber(stage)}
         totalSteps={STAGE_ORDER.length}
         title="4) SEC filing identity"
@@ -868,6 +837,7 @@ function WizardApp({ configPath, initialConfig }: { configPath: string; initialC
   if (stage === "secCompany") {
     return (
       <TextEntryStep
+        key={stage}
         step={stageNumber(stage)}
         totalSteps={STAGE_ORDER.length}
         title="4) SEC filing identity"
@@ -898,6 +868,7 @@ function WizardApp({ configPath, initialConfig }: { configPath: string; initialC
   if (stage === "review") {
     return (
       <ReviewStep
+        key={stage}
         step={stageNumber(stage)}
         totalSteps={STAGE_ORDER.length}
         configPath={configPath}
@@ -908,8 +879,7 @@ function WizardApp({ configPath, initialConfig }: { configPath: string; initialC
           setSaveError(null);
           try {
             saveConfig(configPath, config);
-            setSavedConfig(config);
-            setStage("done");
+            exit();
           } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             setSaveError(message);
@@ -919,7 +889,7 @@ function WizardApp({ configPath, initialConfig }: { configPath: string; initialC
     );
   }
 
-  return <DoneStep configPath={configPath} config={savedConfig} />;
+  return null;
 }
 
 function resolveConfigPath(args: string[]): string {

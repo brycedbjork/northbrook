@@ -112,13 +112,14 @@ data = {
     "aiProvider": {
         "provider": "anthropic",
         "apiKey": "",
-        "model": "claude-sonnet-4-5",
+        "model": "claude-opus-4-6",
     },
     "heartbeat": {
         "enabled": True,
         "intervalMinutes": 30,
     },
     "skills": {},
+    "broker": {},
     "sec": {
         "appName": "Northbrook",
         "name": "",

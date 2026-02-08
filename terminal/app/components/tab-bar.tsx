@@ -14,6 +14,15 @@ const labels: Record<ScreenName, string> = {
 
 export function TabBar() {
   const screen = useTerminal((s) => s.screen);
+  const viewMode = useTerminal((s) => s.viewMode);
+
+  if (viewMode === "detail") {
+    return (
+      <Box paddingTop={1} paddingX={1}>
+        <Text color={colors.textMuted}>esc to exit</Text>
+      </Box>
+    );
+  }
 
   return (
     <Box paddingTop={1} paddingX={1}>

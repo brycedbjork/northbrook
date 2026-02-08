@@ -31,9 +31,10 @@ IB_INSTALL_DIR="${BROKER_IB_INSTALL_DIR:-${HOME}/Applications/IB Gateway}"
 IBC_RELEASE_TAG="${BROKER_IBC_RELEASE_TAG:-latest}"
 IBC_INSTALL_DIR="${BROKER_IBC_INSTALL_DIR:-${NORTHBROOK_DATA_HOME}/ibc}"
 NB_BIN_DIR="${NB_BIN_DIR:-${HOME}/.local/bin}"
+PI_NPM_PACKAGE="${PI_NPM_PACKAGE:-@mariozechner/pi-coding-agent}"
 LOG_DIR="$(mktemp -d /tmp/northbrook-install.XXXXXX)"
 STEP_INDEX=0
-STEP_TOTAL=12
+STEP_TOTAL=13
 INTERACTIVE=0
 SKIP_ONBOARDING=0
 ONBOARDING_ONLY=0
@@ -71,7 +72,7 @@ for arg in "${ORIG_ARGS[@]}"; do
 done
 
 if [[ "${SKIP_ONBOARDING}" -eq 0 && "${ONBOARDING_INTERACTIVE}" -eq 1 ]]; then
-  STEP_TOTAL=13
+  STEP_TOTAL=14
 fi
 
 if [[ -t 1 ]]; then
@@ -131,6 +132,7 @@ run_step "Installing IBC automation package" install_ibc
 run_step "Creating Python runtime" create_python_runtime
 run_step "Installing Python packages" install_python_packages
 run_step "Installing TypeScript packages (bun)" install_typescript_packages
+run_step "Installing pi CLI" install_pi_cli
 run_step "Running Python test suite" run_python_tests
 run_step "Running TypeScript typechecks" run_typescript_typechecks
 run_step "Finalizing CLI command binding" bind_nb_command

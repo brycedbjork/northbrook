@@ -9,7 +9,7 @@ import type { ResearchEntry } from "../store/types.js";
 
 function renderItem(item: ResearchEntry, _index: number, selected: boolean) {
   return (
-    <Box>
+    <>
       <Text bold={selected} color={selected ? colors.textBright : colors.text}>
         {item.title}
       </Text>
@@ -25,7 +25,7 @@ function renderItem(item: ResearchEntry, _index: number, selected: boolean) {
           {item.tags.join(", ")}
         </Text>
       )}
-    </Box>
+    </>
   );
 }
 

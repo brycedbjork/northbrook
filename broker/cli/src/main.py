@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import typer
 
-from broker_cli import agent, audit, daemon, market, orders, portfolio, risk
-from broker_cli._common import CLIState, build_typer, load_config, resolve_json_mode
+import agent
+import audit
+import daemon
+import market
+import orders
+import portfolio
+import risk
+from _common import CLIState, build_typer, load_config, resolve_json_mode
 
 app = build_typer(
     """Broker command-line interface for agent-facing trading, portfolio, risk, and audit workflows.
@@ -43,15 +47,9 @@ def root(
         "--json",
         help="Retained for compatibility. Broker CLI output is JSON by default.",
     ),
-    config: str | None = typer.Option(
-        None,
-        "--config",
-        help="Path to config.toml (default: ~/.northbrook/config.toml).",
-    ),
 ) -> None:
-    config_path = None if config is None else Path(config)
-    cfg = load_config(config_path)
-    ctx.obj = CLIState(config=cfg, json_output=resolve_json_mode(json_output, cfg), config_path=config_path)
+    cfg = load_config()
+    ctx.obj = CLIState(config=cfg, json_output=resolve_json_mode(json_output, cfg))
 
 
 def run() -> None:

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typer.testing import CliRunner
 
-from broker_cli.main import app
+from main import app
 
 
 def test_root_help() -> None:

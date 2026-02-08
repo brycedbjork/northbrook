@@ -3,8 +3,8 @@ from __future__ import annotations
 import pytest
 import typer
 
-from broker_cli.agent import _parse_topics
-from broker_cli.market import _parse_interval
+from agent import _parse_topics
+from market import _parse_interval
 
 
 def test_parse_interval_supports_milliseconds() -> None:

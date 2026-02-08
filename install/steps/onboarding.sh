@@ -49,3 +49,20 @@ start_services_after_onboarding() {
 
   return 0
 }
+
+launch_thesis_after_onboarding() {
+  if [[ ! -t 0 || ! -t 1 ]]; then
+    return 0
+  fi
+  if ! command -v bun >/dev/null 2>&1; then
+    fail "bun is required to launch the thesis kickoff."
+  fi
+  if [[ ! -f "${ROOT_DIR}/terminal/thesis/main.tsx" ]]; then
+    fail "terminal thesis kickoff not found at ${ROOT_DIR}/terminal/thesis/main.tsx"
+  fi
+
+  (
+    cd "${ROOT_DIR}/terminal"
+    bun run thesis
+  )
+}

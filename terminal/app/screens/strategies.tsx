@@ -10,7 +10,7 @@ import type { StrategyEntry } from "../store/types.js";
 
 function renderItem(item: StrategyEntry, _index: number, selected: boolean) {
   return (
-    <Box>
+    <>
       <Text bold={selected} color={selected ? colors.textBright : colors.text}>
         {item.name}
       </Text>
@@ -28,7 +28,7 @@ function renderItem(item: StrategyEntry, _index: number, selected: boolean) {
         {" · "}
         {item.positionCount} pos
       </Text>
-    </Box>
+    </>
   );
 }
 

@@ -1,6 +1,20 @@
 Treat the thesis above as the user's primary portfolio mandate.
-Kick off the first agentic session now and seed the portfolio using that thesis:
-- propose initial strategy definitions aligned with the thesis and risk-aware position sizing;
-- identify and propose initial positions that express the thesis;
-- explain why each strategy and position maps to the thesis and what would invalidate it.
-Operate as the first portfolio seeding workflow.
+This run is a background portfolio seeding workflow.
+
+Mandatory persistence requirements for this run:
+- Do not just reply with prose. Use file tools to write durable artifacts in the workspace now.
+- Create or update strategy docs in `~/.northbrook/workspace/strategies/*.md` with valid frontmatter:
+  - `name`
+  - `status`
+  - `last_evaluated_at` (ISO-8601)
+  - `positions` (string array of symbols)
+- Create or update position docs in `~/.northbrook/workspace/positions/*.md` with valid frontmatter:
+  - `symbol`
+  - `order_ids` (string array; use `[]` if no broker order yet)
+  - `strategy`
+  - `opened_at` (ISO-8601)
+- Ensure strategy `positions` lists and position `strategy` values are consistent.
+- Keep initial sizing conservative and include explicit invalidation criteria in file bodies.
+- Do not place broker orders in this kickoff; seed documentation and portfolio plan only.
+
+After writing files, return a concise summary of what was persisted.

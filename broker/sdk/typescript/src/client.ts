@@ -61,7 +61,6 @@ import type {
 export interface ClientOptions {
   socketPath?: string;
   timeoutMs?: number;
-  configPath?: string;
   source?: string;
 }
 
@@ -77,7 +76,7 @@ export class Client {
   }
 
   static async fromConfig(options: ClientOptions = {}): Promise<Client> {
-    const cfg = await loadConfig(options.configPath);
+    const cfg = await loadConfig();
     return new Client({
       socketPath: options.socketPath ?? cfg.runtime.socket_path,
       timeoutMs: options.timeoutMs ?? cfg.runtime.request_timeout_seconds * 1000,
@@ -378,8 +377,8 @@ export async function buildClient(options: ClientOptions = {}): Promise<Client> 
   return Client.fromConfig(options);
 }
 
-export async function loadClientConfig(configPath?: string): Promise<AppConfig> {
-  return loadConfig(configPath);
+export async function loadClientConfig(): Promise<AppConfig> {
+  return loadConfig();
 }
 
 function compactParams<T extends Record<string, unknown>>(input: T): Record<string, JsonValue> {

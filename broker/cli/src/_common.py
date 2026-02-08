@@ -10,7 +10,6 @@ import subprocess
 import sys
 import time
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any
 
 import click
@@ -31,7 +30,6 @@ HELP_CONTEXT_SETTINGS = {
 class CLIState:
     config: AppConfig
     json_output: bool
-    config_path: Path | None = None
 
 
 class SuggestionGroup(TyperGroup):
@@ -125,7 +123,6 @@ async def daemon_request(state: CLIState, command: str, params: dict[str, Any] |
 
 
 def start_daemon_process(
-    config_path: Path | None,
     cfg: AppConfig,
     *,
     extra_env: dict[str, str] | None = None,
@@ -139,8 +136,6 @@ def start_daemon_process(
             cfg.runtime.socket_path.unlink(missing_ok=True)
 
     cmd = [sys.executable, "-m", "broker_daemon.daemon.server"]
-    if config_path is not None:
-        cmd.extend(["--config", str(config_path.expanduser())])
 
     env = dict(os.environ)
     if extra_env:

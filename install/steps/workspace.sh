@@ -54,13 +54,14 @@ defaults = {
     "aiProvider": {
         "provider": "anthropic",
         "apiKey": "",
-        "model": "claude-sonnet-4-5",
+        "model": "claude-opus-4-6",
     },
     "heartbeat": {
         "enabled": True,
         "intervalMinutes": 30,
     },
     "skills": {},
+    "broker": {},
     "sec": {
         "appName": "Northbrook",
         "name": "",
@@ -74,7 +75,7 @@ defaults = {
     "ibkrAutoLogin": False,
 }
 provider_defaults = {
-    "anthropic": "claude-sonnet-4-5",
+    "anthropic": "claude-opus-4-6",
     "openai": "gpt-5",
     "google": "gemini-2.5-pro",
 }
@@ -110,6 +111,10 @@ for skill_name in ("xApi", "braveSearchApi"):
     raw_skill = skills.get(skill_name)
     if isinstance(raw_skill, dict):
         normalized_skills[skill_name] = {"apiKey": as_non_empty_str(raw_skill.get("apiKey"))}
+
+broker_cfg = data.get("broker")
+if not isinstance(broker_cfg, dict):
+    broker_cfg = {}
 
 gateway_mode = as_non_empty_str(data.get("ibkrGatewayMode"))
 if gateway_mode not in {"paper", "live"}:
@@ -149,6 +154,7 @@ data = {
     "aiProvider": {"provider": provider, "apiKey": api_key, "model": model},
     "heartbeat": {"enabled": heartbeat_enabled, "intervalMinutes": heartbeat_interval},
     "skills": normalized_skills,
+    "broker": broker_cfg,
     "sec": {
         "appName": sec_app_name,
         "name": sec_name,

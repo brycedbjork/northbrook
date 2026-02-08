@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import typer
 
-from broker_cli._common import build_typer, daemon_request, get_state, handle_error, print_output, run_async, start_daemon_process
+from _common import build_typer, daemon_request, get_state, handle_error, print_output, run_async, start_daemon_process
 from broker_daemon.exceptions import BrokerError
 
 app = build_typer("Daemon lifecycle commands (`start`, `stop`, `status`, `restart`).")
@@ -30,7 +30,7 @@ def start(
     if paper:
         env["BROKER_GATEWAY_PORT"] = "4002"
 
-    code = start_daemon_process(state.config_path, state.config, extra_env=env or None)
+    code = start_daemon_process(state.config, extra_env=env or None)
     if code != 0:
         typer.echo("Failed to start daemon. Check broker log (default: ~/.local/state/northbrook/broker.log).", err=True)
         raise typer.Exit(code=1)
@@ -70,7 +70,7 @@ def restart(
         pass
 
     env = {"BROKER_GATEWAY_PORT": "4002"} if paper else None
-    code = start_daemon_process(state.config_path, state.config, extra_env=env)
+    code = start_daemon_process(state.config, extra_env=env)
     if code != 0:
         typer.echo("Failed to restart daemon. Check broker log (default: ~/.local/state/northbrook/broker.log).", err=True)
         raise typer.Exit(code=1)

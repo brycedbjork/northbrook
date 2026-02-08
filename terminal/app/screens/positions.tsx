@@ -11,7 +11,7 @@ import type { PositionEntry } from "../store/types.js";
 function renderItem(item: PositionEntry, _index: number, selected: boolean) {
   const hasBrokerData = item.qty > 0 || item.status === "open";
   return (
-    <Box>
+    <>
       <Text bold={selected} color={selected ? colors.textBright : colors.text}>
         {item.symbol}
       </Text>
@@ -32,7 +32,7 @@ function renderItem(item: PositionEntry, _index: number, selected: boolean) {
         label={item.status}
         variant={item.status === "open" ? "success" : "muted"}
       />
-    </Box>
+    </>
   );
 }
 

@@ -30,6 +30,7 @@ type NorthbrookConfig = {
     xApi?: { apiKey?: string };
     braveSearchApi?: { apiKey?: string };
   };
+  broker?: Record<string, unknown>;
   sec?: {
     appName?: string;
     name?: string;
@@ -534,6 +535,13 @@ async function runThesisKickoff(env: NodeJS.ProcessEnv): Promise<void> {
   });
 }
 
+function clearTerminalScreen(): void {
+  if (!process.stdout.isTTY) {
+    return;
+  }
+  process.stdout.write("\u001b[2J\u001b[H");
+}
+
 async function runTerminal(args: string[]): Promise<void> {
   const terminalEntrypoint = path.join(ROOT_DIR, "terminal", "app", "main.tsx");
   if (!existsSync(terminalEntrypoint)) {
@@ -585,6 +593,7 @@ async function runTerminal(args: string[]): Promise<void> {
     if (bootstrapOutcome === "ok") {
       if (!(await hasPersistedSessions())) {
         await runThesisKickoff(env);
+        clearTerminalScreen();
       }
     } else if (bootstrapOutcome === "error") {
       console.error("Skipping thesis kickoff because broker/agents bootstrap failed.");
@@ -823,13 +832,14 @@ async function commandReset(yes: boolean): Promise<void> {
     aiProvider: {
       provider: "anthropic",
       apiKey: "",
-      model: "claude-sonnet-4-5",
+      model: "claude-opus-4-6",
     },
     heartbeat: {
       enabled: true,
       intervalMinutes: 30,
     },
     skills: {},
+    broker: {},
     sec: {
       appName: "Northbrook",
       name: "",

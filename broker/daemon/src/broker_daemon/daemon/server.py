@@ -647,8 +647,8 @@ async def _safe_wait_closed(writer: asyncio.StreamWriter) -> None:
         return
 
 
-async def run_daemon(config_path: Path | None = None) -> None:
-    cfg = load_config(config_path)
+async def run_daemon() -> None:
+    cfg = load_config()
 
     logging.basicConfig(
         level=getattr(logging, cfg.logging.level.upper(), logging.INFO),
@@ -671,14 +671,13 @@ async def run_daemon(config_path: Path | None = None) -> None:
 
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="broker daemon")
-    parser.add_argument("--config", type=Path, default=None, help="Path to config.toml")
     return parser.parse_args(argv)
 
 
 def main() -> None:
-    args = _parse_args()
+    _parse_args()
     try:
-        asyncio.run(run_daemon(args.config))
+        asyncio.run(run_daemon())
     except KeyboardInterrupt:
         pass
 

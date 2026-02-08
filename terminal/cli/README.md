@@ -30,7 +30,7 @@ nb --daemon-help
 
 ## Notes
 
-- `nb` uses `~/.northbrook/northbrook.json` for provider and gateway defaults.
+- `nb` uses `~/.northbrook/northbrook.json` for provider/gateway defaults and optional broker config under `broker.*`.
 - Runtime files (logs, pid, socket, audit db, agents state) default to `~/.local/state/northbrook`.
 - Runtime payload data (for example IBC install assets) default to `~/.local/share/northbrook`.
 - If no prior sessions exist in `~/.northbrook/workspace/sessions`, `nb` runs the thesis kickoff TUI before opening the terminal app.

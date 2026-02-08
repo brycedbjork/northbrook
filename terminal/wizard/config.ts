@@ -97,6 +97,8 @@ export function normalizeConfig(raw: unknown): WizardConfig {
       company: secCompany,
     });
 
+  const broker = isRecord(source.broker) ? source.broker : {};
+
   return {
     aiProvider: {
       provider,
@@ -108,6 +110,7 @@ export function normalizeConfig(raw: unknown): WizardConfig {
       intervalMinutes: normalizeHeartbeatInterval(heartbeatRaw.intervalMinutes),
     },
     skills,
+    broker,
     ibkrUsername: asNonEmptyString(source.ibkrUsername),
     ibkrPassword: asNonEmptyString(source.ibkrPassword),
     ibkrGatewayMode: normalizeGatewayMode(source.ibkrGatewayMode),

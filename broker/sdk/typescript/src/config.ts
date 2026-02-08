@@ -2,8 +2,6 @@ import { homedir } from "node:os";
 import path from "node:path";
 import { access, mkdir, readFile } from "node:fs/promises";
 
-import * as toml from "toml";
-
 import type { AppConfig, JsonValue } from "./types.js";
 
 function envOrDefault(name: string, fallback: string): string {
@@ -16,9 +14,12 @@ function envOrDefault(name: string, fallback: string): string {
 
 const USER_HOME = homedir();
 const DEFAULT_HOME = envOrDefault("NORTHBROOK_HOME", path.join(USER_HOME, ".northbrook"));
+const DEFAULT_NORTHBROOK_CONFIG_JSON = envOrDefault(
+  "NORTHBROOK_CONFIG_JSON",
+  path.join(DEFAULT_HOME, "northbrook.json")
+);
 const XDG_STATE_HOME = envOrDefault("XDG_STATE_HOME", path.join(USER_HOME, ".local", "state"));
 const DEFAULT_STATE_HOME = path.join(XDG_STATE_HOME, "northbrook");
-const DEFAULT_CONFIG_PATH = path.join(DEFAULT_HOME, "config.toml");
 
 const DEFAULT_CONFIG: AppConfig = {
   gateway: {
@@ -63,6 +64,18 @@ const DEFAULT_CONFIG: AppConfig = {
 };
 
 type ConfigSection = keyof AppConfig;
+type JsonObject = Record<string, JsonValue>;
+
+function asNonEmptyString(value: unknown): string {
+  if (typeof value === "string") {
+    return value.trim();
+  }
+  return "";
+}
+
+function isRecord(value: unknown): value is JsonObject {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
 
 function cloneDefaults(): AppConfig {
   return structuredClone(DEFAULT_CONFIG);
@@ -157,7 +170,7 @@ function applyEnvOverrides(base: AppConfig): AppConfig {
   return out;
 }
 
-async function readTomlConfig(configPath: string): Promise<Partial<AppConfig>> {
+async function readNorthbrookConfig(configPath: string): Promise<unknown> {
   try {
     await access(configPath);
   } catch {
@@ -165,8 +178,53 @@ async function readTomlConfig(configPath: string): Promise<Partial<AppConfig>> {
   }
 
   const raw = await readFile(configPath, "utf8");
-  const parsed = toml.parse(raw) as Partial<AppConfig>;
-  return parsed;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return {};
+  }
+}
+
+function extractBrokerConfig(raw: unknown): Partial<AppConfig> {
+  const out: Partial<AppConfig> = {};
+  if (!isRecord(raw)) {
+    return out;
+  }
+
+  const broker = isRecord(raw.broker) ? raw.broker : null;
+  if (broker) {
+    if (isRecord(broker.gateway)) {
+      out.gateway = broker.gateway as unknown as AppConfig["gateway"];
+    }
+    if (isRecord(broker.risk)) {
+      out.risk = broker.risk as unknown as AppConfig["risk"];
+    }
+    if (isRecord(broker.logging)) {
+      out.logging = broker.logging as unknown as AppConfig["logging"];
+    }
+    if (isRecord(broker.agent)) {
+      out.agent = broker.agent as unknown as AppConfig["agent"];
+    }
+    if (isRecord(broker.output)) {
+      out.output = broker.output as unknown as AppConfig["output"];
+    }
+    if (isRecord(broker.runtime)) {
+      out.runtime = broker.runtime as unknown as AppConfig["runtime"];
+    }
+  }
+
+  const mode = asNonEmptyString(raw.ibkrGatewayMode).toLowerCase();
+  if (mode === "paper" || mode === "live") {
+    const gateway = isRecord(out.gateway as unknown)
+      ? ({ ...(out.gateway as unknown as Record<string, JsonValue>) } as Record<string, JsonValue>)
+      : ({} as Record<string, JsonValue>);
+    if (gateway.port === undefined) {
+      gateway.port = mode === "paper" ? 4002 : 4001;
+    }
+    out.gateway = gateway as unknown as AppConfig["gateway"];
+  }
+
+  return out;
 }
 
 async function ensureDirs(cfg: AppConfig): Promise<void> {
@@ -176,9 +234,10 @@ async function ensureDirs(cfg: AppConfig): Promise<void> {
   await mkdir(path.dirname(cfg.logging.log_file), { recursive: true });
 }
 
-export async function loadConfig(configPath?: string): Promise<AppConfig> {
-  const resolvedConfigPath = expandHome(configPath ?? DEFAULT_CONFIG_PATH);
-  const fromFile = await readTomlConfig(resolvedConfigPath);
+export async function loadConfig(): Promise<AppConfig> {
+  const resolvedConfigPath = expandHome(DEFAULT_NORTHBROOK_CONFIG_JSON);
+  const raw = await readNorthbrookConfig(resolvedConfigPath);
+  const fromFile = extractBrokerConfig(raw);
   const normalized = normalizeConfig(fromFile);
   const withEnv = applyEnvOverrides(normalized);
   await ensureDirs(withEnv);
@@ -194,5 +253,5 @@ export function resolveJsonMode(jsonFlag: boolean, cfg: AppConfig): boolean {
 export const defaults = {
   DEFAULT_HOME,
   DEFAULT_STATE_HOME,
-  DEFAULT_CONFIG_PATH
+  DEFAULT_NORTHBROOK_CONFIG_JSON
 };

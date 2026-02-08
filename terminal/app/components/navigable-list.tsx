@@ -24,7 +24,7 @@ export function NavigableList<T>({
   }
 
   return (
-    <Box flexDirection="column" paddingX={1}>
+    <Box flexDirection="column" paddingX={1} paddingTop={1}>
       {items.map((item, i) => {
         const selected = i === selectedIndex;
         return (

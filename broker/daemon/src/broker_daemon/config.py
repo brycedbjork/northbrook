@@ -1,9 +1,9 @@
-"""Config loading, defaults, and environment overrides."""
+"""Broker config loading from northbrook.json plus env overrides."""
 
 from __future__ import annotations
 
+import json
 import os
-import tomllib
 from pathlib import Path
 from typing import Any
 
@@ -19,7 +19,7 @@ _USER_HOME = Path.home()
 DEFAULT_HOME = _env_path("NORTHBROOK_HOME", _USER_HOME / ".northbrook")
 _XDG_STATE_HOME = _env_path("XDG_STATE_HOME", _USER_HOME / ".local" / "state")
 DEFAULT_STATE_HOME = _XDG_STATE_HOME / "northbrook"
-DEFAULT_CONFIG_PATH = DEFAULT_HOME / "config.toml"
+DEFAULT_NORTHBROOK_CONFIG_JSON = _env_path("NORTHBROOK_CONFIG_JSON", DEFAULT_HOME / "northbrook.json")
 
 
 class GatewayConfig(BaseModel):
@@ -105,6 +105,47 @@ def _coerce_env_value(value: str) -> Any:
         return value
 
 
+def _as_non_empty_string(value: Any) -> str:
+    if isinstance(value, str):
+        return value.strip()
+    return ""
+
+
+def _read_northbrook_json(path: Path) -> dict[str, Any]:
+    if not path.exists():
+        return {}
+
+    try:
+        loaded = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+    if isinstance(loaded, dict):
+        return loaded
+    return {}
+
+
+def _extract_broker_config(data: dict[str, Any]) -> dict[str, Any]:
+    out: dict[str, Any] = {}
+    raw_broker = data.get("broker")
+    sections = {"gateway", "risk", "logging", "agent", "output", "runtime"}
+
+    if isinstance(raw_broker, dict):
+        for section in sections:
+            value = raw_broker.get(section)
+            if isinstance(value, dict):
+                out[section] = value
+
+    mode = _as_non_empty_string(data.get("ibkrGatewayMode")).lower()
+    if mode in {"paper", "live"}:
+        gateway = dict(out.get("gateway", {}))
+        if "port" not in gateway:
+            gateway["port"] = 4002 if mode == "paper" else 4001
+        out["gateway"] = gateway
+
+    return out
+
+
 def _apply_env_overrides(data: dict[str, Any]) -> dict[str, Any]:
     result = dict(data)
     sections = {"gateway", "risk", "logging", "agent", "output", "runtime"}
@@ -124,15 +165,10 @@ def _apply_env_overrides(data: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
-def load_config(path: Path | None = None) -> AppConfig:
-    config_path = (path or DEFAULT_CONFIG_PATH).expanduser()
-    data: dict[str, Any] = {}
-    if config_path.exists():
-        with config_path.open("rb") as f:
-            loaded = tomllib.load(f)
-            if isinstance(loaded, dict):
-                data = loaded
-    merged = _apply_env_overrides(data)
+def load_config() -> AppConfig:
+    raw = _read_northbrook_json(DEFAULT_NORTHBROOK_CONFIG_JSON)
+    from_file = _extract_broker_config(raw)
+    merged = _apply_env_overrides(from_file)
     cfg = AppConfig.model_validate(merged).expanded()
     cfg.ensure_dirs()
     return cfg

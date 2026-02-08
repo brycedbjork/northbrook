@@ -80,7 +80,7 @@ find_installed_ib_gateway_app() {
 }
 
 install_ib_app() {
-  case "${INSTALL_IB_APP,,}" in
+  case "$(printf '%s' "${INSTALL_IB_APP}" | tr '[:upper:]' '[:lower:]')" in
     1|true|yes|on) ;;
     0|false|no|off)
       return 0

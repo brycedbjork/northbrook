@@ -50,7 +50,9 @@ export function Table<T>({
 
       {/* Rows */}
       {visible.length === 0 ? (
-        <Text color={colors.textDim}>{emptyMessage}</Text>
+        <Box paddingX={1} paddingY={1}>
+          <Text color={colors.textDim}>{emptyMessage}</Text>
+        </Box>
       ) : (
         visible.map((row, ri) => {
           const isSelected = ri === selectedIndex;

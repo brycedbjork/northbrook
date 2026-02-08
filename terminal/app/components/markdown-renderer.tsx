@@ -3,15 +3,27 @@ import { colors } from "../lib/theme.js";
 
 export type MarkdownRendererProps = {
   content: string;
+  scrollOffset?: number;
+  maxLines?: number;
 };
 
-export function MarkdownRenderer({ content }: MarkdownRendererProps) {
+export function MarkdownRenderer({
+  content,
+  scrollOffset = 0,
+  maxLines,
+}: MarkdownRendererProps) {
   const normalized = content.replaceAll("\r\n", "\n").trimEnd();
   const lines = normalized.split("\n");
+  const clampedOffset = Math.max(0, scrollOffset);
+  const visibleLines =
+    typeof maxLines === "number" && maxLines > 0
+      ? lines.slice(clampedOffset, clampedOffset + maxLines)
+      : lines;
 
   return (
     <Box flexDirection="column">
-      {lines.map((line, index) => {
+      {visibleLines.map((line, visibleIndex) => {
+        const index = clampedOffset + visibleIndex;
         const heading = line.match(/^(#{1,6})\s+(.*)$/);
         if (heading) {
           return (

@@ -111,14 +111,6 @@ function trimGlobalBrokerOptions(args: string[]): string[] {
       i += 1;
       continue;
     }
-    if (arg === "--config") {
-      i += 2;
-      continue;
-    }
-    if (arg.startsWith("--config=")) {
-      i += 1;
-      continue;
-    }
     if (arg === "-h" || arg === "--help") {
       i += 1;
       continue;

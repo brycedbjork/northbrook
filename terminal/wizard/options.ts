@@ -1,7 +1,7 @@
 import type { GatewayMode, ProviderId, SkillId, WizardConfig } from "./types.js";
 
 export const DEFAULT_MODELS: Record<ProviderId, string> = {
-  anthropic: "claude-sonnet-4-5",
+  anthropic: "claude-opus-4-6",
   openai: "gpt-5",
   google: "gemini-2.5-pro",
 };
@@ -80,6 +80,7 @@ export const DEFAULT_CONFIG: WizardConfig = {
     intervalMinutes: 30,
   },
   skills: {},
+  broker: {},
   ibkrUsername: "",
   ibkrPassword: "",
   ibkrGatewayMode: "paper",

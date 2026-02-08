@@ -19,6 +19,7 @@ export type WizardConfig = {
     intervalMinutes: number;
   };
   skills: Partial<Record<SkillId, SkillEntry>>;
+  broker: Record<string, unknown>;
   ibkrUsername: string;
   ibkrPassword: string;
   ibkrGatewayMode: GatewayMode;

@@ -113,7 +113,11 @@ if [[ "${SHOW_HELP}" -eq 1 ]]; then
   exit 0
 fi
 
-case "${LAUNCH_IB,,}" in
+lowercase() {
+  printf '%s' "$1" | tr '[:upper:]' '[:lower:]'
+}
+
+case "$(lowercase "${LAUNCH_IB}")" in
   1|true|yes|on) LAUNCH_IB=1 ;;
   0|false|no|off) LAUNCH_IB=0 ;;
   *)
@@ -342,7 +346,7 @@ launch_ib_with_ibc() {
     "--on2fatimeout=restart"
   )
 
-  case "${IB_AUTO_LOGIN,,}" in
+  case "$(lowercase "${IB_AUTO_LOGIN}")" in
     1|true|yes|on)
       if [[ -n "${IB_LOGIN_USERNAME}" && -n "${IB_LOGIN_PASSWORD}" ]]; then
         cmd+=("--user=${IB_LOGIN_USERNAME}" "--pw=${IB_LOGIN_PASSWORD}")
@@ -535,7 +539,10 @@ fi
 
 maybe_launch_ib "${TARGET_PORTS[@]}"
 
-START_ARGS=("${PASSTHROUGH[@]}")
+START_ARGS=()
+if (( ${#PASSTHROUGH[@]} > 0 )); then
+  START_ARGS=("${PASSTHROUGH[@]}")
+fi
 if [[ "${HAS_GATEWAY}" -eq 0 ]]; then
   LISTENERS="$(lsof -nP -iTCP -sTCP:LISTEN 2>/dev/null || true)"
   DETECTED_PORT=""

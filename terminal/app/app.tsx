@@ -28,7 +28,7 @@ export function App({ onExit }: { onExit: () => void }) {
 
   return (
     <Box flexDirection="column" height="100%" width="100%">
-      <Box flexGrow={1}>
+      <Box key={`${screen}:${viewMode}`} flexGrow={1}>
         {viewMode === "chat" ? <ChatView /> : <ScreenComponent />}
       </Box>
       <ChatInput />
