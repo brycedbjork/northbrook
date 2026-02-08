@@ -1,0 +1,34 @@
+{
+  "name": "@broker/sdk-typescript",
+  "version": "0.1.0",
+  "description": "Strictly typed TypeScript SDK for broker-daemon",
+  "packageManager": "bun@1.2.2",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "biome:check": "biome check .",
+    "biome:fix": "biome check --write .",
+    "ultracite:check": "ultracite check .",
+    "ultracite:fix": "ultracite fix ."
+  },
+  "dependencies": {
+    "@msgpack/msgpack": "^3.0.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.2.6",
+    "@types/node": "^22.10.2",
+    "ultracite": "^5.1.2",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

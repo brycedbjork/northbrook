@@ -1,7 +1,7 @@
 # shellcheck shell=bash
 
 ensure_source_checkout() {
-  if [[ -d "${BROKER_DIR}" && -d "${ROOT_DIR}/terminal" && -d "${ROOT_DIR}/agents" ]]; then
+  if [[ -d "${ROOT_DIR}/daemon" && -d "${ROOT_DIR}/cli" && -d "${ROOT_DIR}/sdk" ]]; then
     return 0
   fi
 
@@ -13,18 +13,19 @@ ensure_source_checkout() {
     fail "git is required for bootstrap installs but could not be installed."
   fi
 
-  mkdir -p "$(dirname "${NORTHBROOK_SOURCE_DIR}")"
+  mkdir -p "$(dirname "${BROKER_SOURCE_DIR}")"
 
-  if [[ -d "${NORTHBROOK_SOURCE_DIR}/.git" ]]; then
-    git -C "${NORTHBROOK_SOURCE_DIR}" fetch --depth=1 origin main || true
-    git -C "${NORTHBROOK_SOURCE_DIR}" reset --hard origin/main || true
+  if [[ -d "${BROKER_SOURCE_DIR}/.git" ]]; then
+    git -C "${BROKER_SOURCE_DIR}" fetch --depth=1 origin main || true
+    git -C "${BROKER_SOURCE_DIR}" reset --hard origin/main || true
   else
-    rm -rf "${NORTHBROOK_SOURCE_DIR}"
-    git clone --depth=1 "${NORTHBROOK_REPO}" "${NORTHBROOK_SOURCE_DIR}"
+    rm -rf "${BROKER_SOURCE_DIR}"
+    git clone --depth=1 "${BROKER_REPO}" "${BROKER_SOURCE_DIR}"
   fi
 
-  exec "${NORTHBROOK_SOURCE_DIR}/install/main.sh" "${ORIG_ARGS[@]}"
+  exec "${BROKER_SOURCE_DIR}/install/main.sh" "${ORIG_ARGS[@]}"
 }
+
 ensure_homebrew() {
   if command -v brew >/dev/null 2>&1; then
     return 0
@@ -57,19 +58,8 @@ ensure_brew_package() {
   brew install "${pkg}"
 }
 
-ensure_bun() {
-  if command -v bun >/dev/null 2>&1; then
-    return 0
-  fi
-  brew install oven-sh/bun/bun
-  if ! command -v bun >/dev/null 2>&1; then
-    fail "bun installation completed but 'bun' is still not on PATH."
-  fi
-}
-
 bootstrap_tooling() {
   ensure_homebrew
   ensure_brew_package "git"
   ensure_brew_package "uv"
-  ensure_bun
 }

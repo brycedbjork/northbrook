@@ -1,20 +1,15 @@
 {
-  "name": "northbrook",
+  "name": "broker",
   "private": true,
   "packageManager": "bun@1.2.2",
   "scripts": {
     "prepare": "husky",
-    "ci:python": "cd broker && BROKER_LAUNCH_IB=0 uv venv --python 3.12 --seed --allow-existing && BROKER_LAUNCH_IB=0 .venv/bin/python -m pip install -e './daemon[dev]' -e './sdk/python[dev]' -e './cli[dev]' && BROKER_LAUNCH_IB=0 .venv/bin/broker --help && BROKER_LAUNCH_IB=0 .venv/bin/python -m pytest daemon/tests cli/tests sdk/python/tests -q",
-    "ci:typescript": "(cd broker/sdk/typescript && BROKER_LAUNCH_IB=0 bun run typecheck) && (cd agents && BROKER_LAUNCH_IB=0 bun run typecheck && BROKER_LAUNCH_IB=0 bun run test) && (cd terminal && BROKER_LAUNCH_IB=0 bun run typecheck && BROKER_LAUNCH_IB=0 bun run test) && BROKER_LAUNCH_IB=0 bun terminal/cli/nb.ts --help && BROKER_LAUNCH_IB=0 bun terminal/cli/nb.ts run --help",
+    "ci:python": "BROKER_LAUNCH_IB=0 uv venv --python 3.12 --seed --allow-existing && BROKER_LAUNCH_IB=0 .venv/bin/python -m pip install -e './daemon[dev]' -e './sdk/python[dev]' -e './cli[dev]' && BROKER_LAUNCH_IB=0 .venv/bin/broker --help && BROKER_LAUNCH_IB=0 .venv/bin/python -m pytest daemon/tests cli/tests sdk/python/tests -q",
+    "ci:typescript": "cd sdk/typescript && BROKER_LAUNCH_IB=0 bun install && BROKER_LAUNCH_IB=0 bun run typecheck",
     "ci:shell": "find . -type f -name '*.sh' -not -path '*/node_modules/*' -print0 | xargs -0 -n1 bash -n",
     "ci:all": "bun run ci:python && bun run ci:typescript && bun run ci:shell"
   },
   "devDependencies": {
     "husky": "^9.1.7"
-  },
-  "workspaces": [
-    "agents",
-    "terminal",
-    "broker/sdk/typescript"
-  ]
+  }
 }

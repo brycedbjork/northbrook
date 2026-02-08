@@ -186,7 +186,7 @@ install_ibc() {
   fi
 
   local tmp_dir
-  tmp_dir="$(mktemp -d /tmp/northbrook-ibc.XXXXXX)"
+  tmp_dir="$(mktemp -d /tmp/broker-ibc.XXXXXX)"
   local release_json="${tmp_dir}/release.json"
   local zip_path="${tmp_dir}/ibc.zip"
 
@@ -243,4 +243,23 @@ PY
   chmod 600 "${IBC_INSTALL_DIR}/config.ini"
 
   rm -rf "${tmp_dir}"
+}
+
+launch_ib_gateway_app() {
+  if [[ "$(uname -s)" != "Darwin" ]]; then
+    return 0
+  fi
+
+  local app_path=""
+  if ! app_path="$(find_installed_ib_gateway_app)"; then
+    warn "IB Gateway app is not installed in the expected locations; skipping launch."
+    return 0
+  fi
+
+  if ! command -v open >/dev/null 2>&1; then
+    warn "macOS 'open' command is unavailable; skipping Gateway launch."
+    return 0
+  fi
+
+  open -a "${app_path}" >/dev/null 2>&1 || warn "Failed to launch ${app_path}."
 }

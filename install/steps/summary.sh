@@ -3,10 +3,15 @@
 print_summary() {
   cat <<SUMMARY
 
-${BOLD}${GREEN}North Brook${RESET}
+${BOLD}${GREEN}Broker Install Complete${RESET}
 
-Agentic terminal for portfolio research, execution, and monitoring.
+Config: ${BROKER_CONFIG_JSON}
+Runtime state: ${BROKER_STATE_HOME}
+Runtime data: ${BROKER_DATA_HOME}
 
-Type ${BOLD}nb${RESET} to launch the Northbrook terminal.
+Try:
+  ${BOLD}broker --help${RESET}
+  ${BOLD}broker daemon start --paper${RESET}
+  ${BOLD}broker daemon status${RESET}
 SUMMARY
 }

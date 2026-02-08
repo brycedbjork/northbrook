@@ -31,13 +31,11 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: "📦 Install broker Python packages"
-        working-directory: broker
         run: |
           uv venv --python 3.12 --seed --allow-existing
           .venv/bin/python -m pip install -e './daemon[dev]' -e './sdk/python[dev]' -e './cli[dev]'
 
       - name: "🧪 Run broker --help smoke check"
-        working-directory: broker
         run: .venv/bin/broker --help
 
   broker-python-tests:
@@ -69,30 +67,16 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: "📦 Install broker Python packages"
-        working-directory: broker
         run: |
           uv venv --python 3.12 --seed --allow-existing
           .venv/bin/python -m pip install -e './daemon[dev]' -e './sdk/python[dev]' -e './cli[dev]'
 
       - name: "🧪 Run pytest (${{ matrix.suite_name }})"
-        working-directory: broker
         run: .venv/bin/python -m pytest "${{ matrix.suite_path }}" -q
 
-  typescript-typechecks:
-    name: "🧩 Typecheck • ${{ matrix.target_name }}"
+  typescript-typecheck:
+    name: "🧩 TypeScript SDK Typecheck"
     runs-on: ubuntu-latest
-    env:
-      BROKER_LAUNCH_IB: "0"
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - target_name: "broker-sdk"
-            target_dir: "broker/sdk/typescript"
-          - target_name: "agents"
-            target_dir: "agents"
-          - target_name: "terminal"
-            target_dir: "terminal"
 
     steps:
       - name: "📥 Checkout"
@@ -101,52 +85,11 @@ jobs:
       - name: "🥟 Setup Bun"
         uses: oven-sh/setup-bun@v2
 
-      - name: "📦 Install dependencies (${{ matrix.target_name }})"
-        run: cd "${{ matrix.target_dir }}" && bun install
+      - name: "📦 Install dependencies"
+        run: cd sdk/typescript && bun install
 
-      - name: "🧪 Run typecheck (${{ matrix.target_name }})"
-        run: cd "${{ matrix.target_dir }}" && bun run typecheck
-
-  terminal-cli-tests:
-    name: "🖥️ Terminal CLI Tests"
-    runs-on: ubuntu-latest
-    env:
-      BROKER_LAUNCH_IB: "0"
-
-    steps:
-      - name: "📥 Checkout"
-        uses: actions/checkout@v4
-
-      - name: "🥟 Setup Bun"
-        uses: oven-sh/setup-bun@v2
-
-      - name: "📦 Install terminal dependencies"
-        run: cd terminal && bun install
-
-      - name: "🧪 Run terminal CLI test suite"
-        run: cd terminal && bun run test
-
-  nb-help-smoke:
-    name: "🧭 NB Help Smoke"
-    runs-on: ubuntu-latest
-    env:
-      BROKER_LAUNCH_IB: "0"
-
-    steps:
-      - name: "📥 Checkout"
-        uses: actions/checkout@v4
-
-      - name: "🥟 Setup Bun"
-        uses: oven-sh/setup-bun@v2
-
-      - name: "📦 Install terminal dependencies"
-        run: cd terminal && bun install
-
-      - name: "🧪 Run nb --help"
-        run: cd terminal && bun cli/nb.ts --help
-
-      - name: "🧪 Run nb run --help"
-        run: cd terminal && bun cli/nb.ts run --help
+      - name: "🧪 Run typecheck"
+        run: cd sdk/typescript && bun run typecheck
 
   shell-script-syntax:
     name: "🐚 Shell Script Syntax"

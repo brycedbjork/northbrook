@@ -1,9 +1,0 @@
-__pycache__/
-.pytest_cache/
-.ruff_cache/
-*.pyc
-.venv/
-.env
-sdk/typescript/node_modules/
-sdk/typescript/dist/
-completions/

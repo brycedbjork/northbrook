@@ -3,7 +3,7 @@
 banner() {
   cat <<BANNER
 ${BOLD}${BLUE}========================================${RESET}
-${BOLD}${BLUE}  Northbrook Platform Installer${RESET}
+${BOLD}${BLUE}         Broker Installer${RESET}
 ${BOLD}${BLUE}========================================${RESET}
 BANNER
 }
