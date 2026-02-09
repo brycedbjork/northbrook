@@ -94,6 +94,12 @@ run_onboarding_wizard() {
     esac
   done
 
+  if [[ "${final_auto}" == "true" ]]; then
+    if [[ -z "${final_username}" || -z "${final_password}" ]]; then
+      fail "IBC auto login requires both IBKR username and password. Rerun onboarding and provide both values."
+    fi
+  fi
+
   BROKER_ONBOARD_USERNAME="${final_username}" \
   BROKER_ONBOARD_PASSWORD="${final_password}" \
   BROKER_ONBOARD_PASSWORD_SET="${password_set}" \

@@ -73,3 +73,34 @@ run_step() {
   tail -n 40 "${log_file}" >&2 || true
   return 1
 }
+
+run_step_interactive() {
+  local label="$1"
+  shift
+  STEP_INDEX=$((STEP_INDEX + 1))
+
+  local prefix
+  prefix=$(printf "[%d/%d]" "${STEP_INDEX}" "${STEP_TOTAL}")
+
+  if [[ "${INTERACTIVE}" -eq 1 ]]; then
+    printf "  ${DIM}%s${RESET} ${BLUE}•${RESET} %s\n" "${prefix}" "${label}"
+  else
+    printf "${BOLD}%s${RESET} %s\n" "${prefix}" "${label}"
+  fi
+
+  if "$@"; then
+    if [[ "${INTERACTIVE}" -eq 1 ]]; then
+      printf "  ${DIM}%s${RESET} ${GREEN}✔${RESET} %s\n" "${prefix}" "${label}"
+    else
+      success "  ${label}"
+    fi
+    return 0
+  fi
+
+  if [[ "${INTERACTIVE}" -eq 1 ]]; then
+    printf "  ${DIM}%s${RESET} ${RED}✖${RESET} %s\n" "${prefix}" "${label}" >&2
+  else
+    printf "${RED}Step failed.${RESET} %s\n" "${label}" >&2
+  fi
+  return 1
+}

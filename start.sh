@@ -5,12 +5,14 @@ BROKER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BROKER_BIN="${BROKER_BIN:-${BROKER_DIR}/.venv/bin/broker}"
 BROKER_STATE_HOME="${XDG_STATE_HOME:-${HOME}/.local/state}/broker"
 BROKER_DATA_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/broker"
+BROKER_CONFIG_HOME="${XDG_CONFIG_HOME:-${HOME}/.config}/broker"
+BROKER_CONFIG_JSON="${BROKER_CONFIG_JSON:-${BROKER_CONFIG_HOME}/config.json}"
 BROKER_PID_FILE="${BROKER_STATE_HOME}/broker-daemon.pid"
 BROKER_SOCKET_FILE="${BROKER_STATE_HOME}/broker.sock"
 LAUNCH_IB="${BROKER_LAUNCH_IB:-1}"
 IB_APP_PATH="${BROKER_IB_APP_PATH:-}"
 IB_WAIT_SECONDS="${BROKER_IB_WAIT_SECONDS:-45}"
-IB_AUTO_LOGIN="${BROKER_IB_AUTO_LOGIN:-0}"
+IB_AUTO_LOGIN="${BROKER_IB_AUTO_LOGIN:-}"
 IB_LOGIN_USERNAME="${BROKER_IB_USERNAME:-}"
 IB_LOGIN_PASSWORD="${BROKER_IB_PASSWORD:-}"
 IBC_PATH="${BROKER_DATA_HOME}/ibc"
@@ -116,6 +118,78 @@ fi
 lowercase() {
   printf '%s' "$1" | tr '[:upper:]' '[:lower:]'
 }
+
+load_ib_secrets_from_config() {
+  if [[ ! -f "${BROKER_CONFIG_JSON}" ]]; then
+    return 0
+  fi
+  if ! command -v python3 >/dev/null 2>&1; then
+    return 0
+  fi
+
+  local cfg_auto=""
+  local cfg_user=""
+  local cfg_pass=""
+  while IFS='=' read -r key value; do
+    case "${key}" in
+      BROKER_IB_AUTO_LOGIN)
+        cfg_auto="${value}"
+        ;;
+      BROKER_IB_USERNAME)
+        cfg_user="${value}"
+        ;;
+      BROKER_IB_PASSWORD)
+        cfg_pass="${value}"
+        ;;
+    esac
+  done < <(
+    python3 - "${BROKER_CONFIG_JSON}" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1]).expanduser()
+try:
+    data = json.loads(path.read_text(encoding="utf-8"))
+except Exception:
+    sys.exit(0)
+
+if not isinstance(data, dict):
+    sys.exit(0)
+
+def as_non_empty_str(value: object) -> str:
+    if isinstance(value, str):
+        return value.strip()
+    return ""
+
+ibkr_username = as_non_empty_str(data.get("ibkrUsername"))
+ibkr_password = as_non_empty_str(data.get("ibkrPassword"))
+ibkr_auto_login = data.get("ibkrAutoLogin")
+
+if isinstance(ibkr_auto_login, bool):
+    print(f"BROKER_IB_AUTO_LOGIN={'true' if ibkr_auto_login else 'false'}")
+if ibkr_username:
+    print(f"BROKER_IB_USERNAME={ibkr_username}")
+if ibkr_password:
+    print(f"BROKER_IB_PASSWORD={ibkr_password}")
+PY
+  )
+
+  if [[ -z "${IB_AUTO_LOGIN}" && -n "${cfg_auto}" ]]; then
+    IB_AUTO_LOGIN="${cfg_auto}"
+  fi
+  if [[ -z "${IB_LOGIN_USERNAME}" && -n "${cfg_user}" ]]; then
+    IB_LOGIN_USERNAME="${cfg_user}"
+  fi
+  if [[ -z "${IB_LOGIN_PASSWORD}" && -n "${cfg_pass}" ]]; then
+    IB_LOGIN_PASSWORD="${cfg_pass}"
+  fi
+}
+
+load_ib_secrets_from_config
+if [[ -z "${IB_AUTO_LOGIN}" ]]; then
+  IB_AUTO_LOGIN="0"
+fi
 
 case "$(lowercase "${LAUNCH_IB}")" in
   1|true|yes|on) LAUNCH_IB=1 ;;

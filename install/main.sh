@@ -26,7 +26,7 @@ export PATH="/opt/homebrew/bin:/usr/local/bin:/home/linuxbrew/.linuxbrew/bin:${P
 PYTHON_VERSION="${PYTHON_VERSION:-3.12}"
 INSTALL_IB_APP="${BROKER_INSTALL_IB_APP:-1}"
 IB_CHANNEL="${BROKER_IB_CHANNEL:-stable}"
-IB_INSTALL_DIR="${BROKER_IB_INSTALL_DIR:-${HOME}/Applications/IB Gateway}"
+IB_INSTALL_DIR="${BROKER_IB_INSTALL_DIR:-/Applications/IB Gateway}"
 IBC_RELEASE_TAG="${BROKER_IBC_RELEASE_TAG:-latest}"
 IBC_INSTALL_DIR="${BROKER_IBC_INSTALL_DIR:-${BROKER_DATA_HOME}/ibc}"
 BROKER_BIN_DIR="${BROKER_BIN_DIR:-${HOME}/.local/bin}"
@@ -102,7 +102,7 @@ if [[ "${ONBOARDING_ONLY}" -eq 1 ]]; then
   banner
   run_step "Preparing broker directories" prepare_broker_home
   run_step "Creating broker config (${BROKER_CONFIG_JSON})" ensure_broker_config
-  run_step "Interactive Brokers credential setup" run_onboarding_wizard
+  run_step_interactive "Interactive Brokers credential setup" run_onboarding_wizard
   rm -rf "${LOG_DIR}"
   print_summary
   exit 0
@@ -118,9 +118,9 @@ run_step "Creating Python runtime" create_python_runtime
 run_step "Installing broker Python packages" install_python_packages
 run_step "Binding broker CLI command" bind_broker_command
 if [[ "${SKIP_ONBOARDING}" -eq 0 ]]; then
-  run_step "Interactive Brokers credential setup" run_onboarding_wizard
+  run_step_interactive "Interactive Brokers credential setup" run_onboarding_wizard
 fi
-run_step "Launching Interactive Brokers Gateway" launch_ib_gateway_app
+run_step "Opening Interactive Brokers Gateway app" launch_ib_gateway_app
 
 rm -rf "${LOG_DIR}"
 print_summary

@@ -141,6 +141,32 @@ find_installed_ib_gateway_app() {
   return 1
 }
 
+find_target_ib_gateway_app() {
+  local app_path=""
+
+  if is_valid_gateway_app_bundle "${IB_INSTALL_DIR}"; then
+    printf '%s\n' "${IB_INSTALL_DIR}"
+    return 0
+  fi
+
+  if app_path="$(resolve_ib_gateway_app_from_root "${IB_INSTALL_DIR}")"; then
+    printf '%s\n' "${app_path}"
+    return 0
+  fi
+
+  local target_parent
+  target_parent="$(dirname "${IB_INSTALL_DIR}")"
+  local target_base
+  target_base="$(basename "${IB_INSTALL_DIR}")"
+  local target_bundle="${target_parent}/${target_base}.app"
+  if is_valid_gateway_app_bundle "${target_bundle}"; then
+    printf '%s\n' "${target_bundle}"
+    return 0
+  fi
+
+  return 1
+}
+
 install_ib_app() {
   case "$(printf '%s' "${INSTALL_IB_APP}" | tr '[:upper:]' '[:lower:]')" in
     1|true|yes|on) ;;
@@ -157,7 +183,10 @@ install_ib_app() {
 
   local existing_app=""
   if existing_app="$(find_installed_ib_gateway_app)"; then
-    return 0
+    if find_target_ib_gateway_app >/dev/null 2>&1; then
+      return 0
+    fi
+    warn "IB Gateway already exists at ${existing_app}, but target is ${IB_INSTALL_DIR}; installing to target path."
   fi
 
   local ib_arch=""
@@ -215,8 +244,8 @@ install_ib_app() {
   hdiutil detach "${mount_point}" -quiet || true
   rm -rf "${tmp_dir}"
 
-  if ! find_installed_ib_gateway_app >/dev/null 2>&1; then
-    fail "Install finished but IB Gateway app was not found in expected locations. Set BROKER_IB_INSTALL_DIR and rerun."
+  if ! find_target_ib_gateway_app >/dev/null 2>&1; then
+    fail "Install finished but IB Gateway app was not found under ${IB_INSTALL_DIR}. Set BROKER_IB_INSTALL_DIR and rerun."
   fi
 }
 
