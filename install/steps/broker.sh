@@ -167,6 +167,39 @@ find_target_ib_gateway_app() {
   return 1
 }
 
+snapshot_desktop_entries() {
+  local snapshot_file="$1"
+  : >"${snapshot_file}"
+  local desktop_dir="${HOME}/Desktop"
+  [[ -d "${desktop_dir}" ]] || return 0
+
+  local path=""
+  while IFS= read -r -d '' path; do
+    basename "${path}" >>"${snapshot_file}"
+  done < <(find "${desktop_dir}" -maxdepth 1 -mindepth 1 -print0 2>/dev/null)
+}
+
+cleanup_new_ib_desktop_shortcuts() {
+  local snapshot_file="$1"
+  local desktop_dir="${HOME}/Desktop"
+  [[ -d "${desktop_dir}" ]] || return 0
+  [[ -f "${snapshot_file}" ]] || return 0
+
+  local path=""
+  local name=""
+  while IFS= read -r -d '' path; do
+    name="$(basename "${path}")"
+    case "${name}" in
+      IB\ Gateway*|Interactive\ Brokers*)
+        if grep -Fxq "${name}" "${snapshot_file}"; then
+          continue
+        fi
+        rm -rf "${path}" >/dev/null 2>&1 || true
+        ;;
+    esac
+  done < <(find "${desktop_dir}" -maxdepth 1 -mindepth 1 -print0 2>/dev/null)
+}
+
 install_ib_app() {
   case "$(printf '%s' "${INSTALL_IB_APP}" | tr '[:upper:]' '[:lower:]')" in
     1|true|yes|on) ;;
@@ -236,21 +269,37 @@ install_ib_app() {
 
   local install_parent
   install_parent="$(dirname "${IB_INSTALL_DIR}")"
-  local -a install_cmd=("${installer_stub}" -q -overwrite -dir "${IB_INSTALL_DIR}")
+  local desktop_snapshot
+  desktop_snapshot="$(mktemp /tmp/broker-desktop-before.XXXXXX)"
+  snapshot_desktop_entries "${desktop_snapshot}"
+
+  local -a install_cmd=(
+    "${installer_stub}"
+    -q
+    -overwrite
+    -dir "${IB_INSTALL_DIR}"
+    '-VcreateDesktopLinkAction$Boolean=false'
+    '-VdesktopShortcutAction$Boolean=false'
+    '-VaddDesktopLauncherAction$Boolean=false'
+    '-VcreateLauncherInDockAction$Boolean=false'
+  )
 
   if mkdir -p "${install_parent}" 2>/dev/null; then
     if ! "${install_cmd[@]}"; then
+      rm -f "${desktop_snapshot}"
       hdiutil detach "${mount_point}" -quiet || true
       rm -rf "${tmp_dir}"
       fail "Silent IB Gateway install failed."
     fi
   else
     if ! command -v sudo >/dev/null 2>&1; then
+      rm -f "${desktop_snapshot}"
       hdiutil detach "${mount_point}" -quiet || true
       rm -rf "${tmp_dir}"
       fail "Installing IB Gateway into ${IB_INSTALL_DIR} requires admin rights, but sudo is unavailable."
     fi
     if [[ ! -t 0 || ! -t 1 ]]; then
+      rm -f "${desktop_snapshot}"
       hdiutil detach "${mount_point}" -quiet || true
       rm -rf "${tmp_dir}"
       fail "Installing IB Gateway into ${IB_INSTALL_DIR} requires admin rights and an interactive terminal."
@@ -261,16 +310,21 @@ install_ib_app() {
     printf '%s\n' "macOS will now prompt for your password."
 
     if ! sudo -p "Broker installer needs admin access to install IB Gateway to ${install_parent}. Password: " mkdir -p "${install_parent}"; then
+      rm -f "${desktop_snapshot}"
       hdiutil detach "${mount_point}" -quiet || true
       rm -rf "${tmp_dir}"
       fail "Could not create install target parent with sudo: ${install_parent}"
     fi
     if ! sudo -p "Broker installer needs admin access to install IB Gateway to ${install_parent}. Password: " "${install_cmd[@]}"; then
+      rm -f "${desktop_snapshot}"
       hdiutil detach "${mount_point}" -quiet || true
       rm -rf "${tmp_dir}"
       fail "IB Gateway install with sudo failed."
     fi
   fi
+
+  cleanup_new_ib_desktop_shortcuts "${desktop_snapshot}"
+  rm -f "${desktop_snapshot}"
 
   hdiutil detach "${mount_point}" -quiet || true
   rm -rf "${tmp_dir}"
@@ -378,10 +432,150 @@ launch_ib_gateway_app() {
     return 0
   fi
 
+  local auto_login=""
+  auto_login="$(read_broker_config_value "ibkrAutoLogin" | tr '[:upper:]' '[:lower:]' || true)"
+  local username=""
+  username="$(read_broker_config_value "ibkrUsername" || true)"
+  local password=""
+  password="$(read_broker_config_value "ibkrPassword" || true)"
+  local mode=""
+  mode="$(read_broker_config_value "ibkrGatewayMode" | tr '[:upper:]' '[:lower:]' || true)"
+  if [[ "${mode}" != "paper" && "${mode}" != "live" ]]; then
+    mode="paper"
+  fi
+
+  if [[ "${auto_login}" == "true" && -n "${username}" && -n "${password}" ]]; then
+    launch_ib_gateway_with_ibc_autologin "${app_path}" "${mode}" "${username}" "${password}"
+    return 0
+  fi
+
+  if [[ "${auto_login}" == "true" ]]; then
+    warn "IBC auto login is enabled but username/password are missing; opening IB Gateway app directly."
+  fi
+
   if ! command -v open >/dev/null 2>&1; then
     warn "macOS 'open' command is unavailable; skipping Gateway launch."
     return 0
   fi
 
   open -a "${app_path}" >/dev/null 2>&1 || warn "Failed to launch ${app_path}."
+}
+
+resolve_ibc_tws_major_version() {
+  local app_path="$1"
+  local name
+  name="$(basename "${app_path}" .app)"
+  if [[ "${name}" =~ ([0-9]+\.[0-9]+) ]]; then
+    printf '%s\n' "${BASH_REMATCH[1]}"
+    return 0
+  fi
+
+  local root
+  root="$(dirname "${app_path}")"
+  local jar
+  jar="$(find "${root}/jars" -maxdepth 1 -type f -name "twslaunch-*.jar" 2>/dev/null | head -n 1 || true)"
+  if [[ "${jar}" =~ twslaunch-([0-9]{4})\.jar$ ]]; then
+    local digits="${BASH_REMATCH[1]}"
+    printf '%s\n' "${digits:0:2}.${digits:2:2}"
+    return 0
+  fi
+
+  return 1
+}
+
+ensure_ibc_launch_ini() {
+  local mode="$1"
+  if [[ "${mode}" != "paper" && "${mode}" != "live" ]]; then
+    mode="paper"
+  fi
+
+  if ! command -v python3 >/dev/null 2>&1; then
+    fail "python3 is required to prepare IBC launch config."
+  fi
+
+  mkdir -p "$(dirname "${BROKER_IBC_INI}")"
+  mkdir -p "${BROKER_IB_SETTINGS_DIR}"
+
+  if [[ ! -f "${BROKER_IBC_INI}" && -f "${IBC_INSTALL_DIR}/config.ini" ]]; then
+    cp "${IBC_INSTALL_DIR}/config.ini" "${BROKER_IBC_INI}"
+  fi
+  [[ -f "${BROKER_IBC_INI}" ]] || fail "IBC config not found at ${BROKER_IBC_INI}"
+
+  python3 - "${BROKER_IBC_INI}" "${mode}" "${BROKER_IB_SETTINGS_DIR}" <<'PY'
+import sys
+from pathlib import Path
+
+config_path = Path(sys.argv[1]).expanduser()
+trading_mode = (sys.argv[2] or "paper").strip().lower()
+ib_dir = sys.argv[3]
+
+if trading_mode not in {"paper", "live"}:
+    trading_mode = "paper"
+
+if config_path.exists():
+    lines = config_path.read_text(encoding="utf-8", errors="ignore").splitlines()
+else:
+    lines = []
+
+updates = {
+    "TradingMode": trading_mode,
+    "AcceptNonBrokerageAccountWarning": "yes",
+    "ReloginAfterSecondFactorAuthenticationTimeout": "restart",
+    "IbDir": ib_dir,
+}
+
+seen = {key: False for key in updates}
+out_lines = []
+for line in lines:
+    replaced = False
+    for key, value in updates.items():
+        if line.startswith(f"{key}="):
+            out_lines.append(f"{key}={value}")
+            seen[key] = True
+            replaced = True
+            break
+    if not replaced:
+        out_lines.append(line)
+
+for key, value in updates.items():
+    if not seen[key]:
+        out_lines.append(f"{key}={value}")
+
+config_path.write_text("\n".join(out_lines).rstrip() + "\n", encoding="utf-8")
+PY
+  chmod 600 "${BROKER_IBC_INI}" >/dev/null 2>&1 || true
+}
+
+launch_ib_gateway_with_ibc_autologin() {
+  local app_path="$1"
+  local mode="$2"
+  local username="$3"
+  local password="$4"
+
+  local ibc_start="${IBC_INSTALL_DIR}/scripts/ibcstart.sh"
+  [[ -x "${ibc_start}" ]] || fail "IBC launcher is missing at ${ibc_start}"
+
+  local tws_major=""
+  if ! tws_major="$(resolve_ibc_tws_major_version "${app_path}")"; then
+    fail "Could not determine IB Gateway major version for IBC from ${app_path}."
+  fi
+
+  ensure_ibc_launch_ini "${mode}"
+
+  local tws_path
+  tws_path="$(dirname "${app_path}")"
+
+  mkdir -p "$(dirname "${BROKER_IBC_LOG_FILE}")"
+  nohup \
+    "${ibc_start}" \
+    "${tws_major}" \
+    --gateway \
+    "--tws-path=${tws_path}" \
+    "--ibc-path=${IBC_INSTALL_DIR}" \
+    "--ibc-ini=${BROKER_IBC_INI}" \
+    "--mode=${mode}" \
+    "--on2fatimeout=restart" \
+    "--user=${username}" \
+    "--pw=${password}" \
+    >"${BROKER_IBC_LOG_FILE}" 2>&1 &
 }

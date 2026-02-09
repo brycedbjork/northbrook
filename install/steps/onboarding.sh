@@ -26,7 +26,11 @@ run_onboarding_wizard() {
   current_password="$(read_broker_config_value "ibkrPassword" || true)"
 
   local username_input
-  read -r -p "IBKR username [${current_username}]: " username_input
+  if [[ -n "${current_username}" ]]; then
+    read -r -p "IBKR username [${current_username}]: " username_input
+  else
+    read -r -p "IBKR username: " username_input
+  fi
   local final_username="${current_username}"
   if [[ -n "${username_input}" ]]; then
     final_username="${username_input}"

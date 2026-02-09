@@ -116,11 +116,11 @@ run_step_interactive "Interactive Brokers Gateway setup" install_ib_app
 run_step "Installing IBC automation package" install_ibc
 run_step "Creating Python runtime" create_python_runtime
 run_step "Installing broker Python packages" install_python_packages
-run_step "Binding broker CLI command" bind_broker_command
+run_step_interactive "Binding broker CLI command" bind_broker_command
 if [[ "${SKIP_ONBOARDING}" -eq 0 ]]; then
   run_step_interactive "Interactive Brokers credential setup" run_onboarding_wizard
 fi
-run_step "Opening Interactive Brokers Gateway app" launch_ib_gateway_app
+run_step "Launching Interactive Brokers Gateway" launch_ib_gateway_app
 
 rm -rf "${LOG_DIR}"
 print_summary
