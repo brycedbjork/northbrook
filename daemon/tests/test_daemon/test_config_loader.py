@@ -69,6 +69,9 @@ def test_load_config_supports_etrade_provider_env(tmp_path: Path, monkeypatch) -
     monkeypatch.setenv("BROKER_ETRADE_CONSUMER_KEY", "key-123")
     monkeypatch.setenv("BROKER_ETRADE_CONSUMER_SECRET", "secret-456")
     monkeypatch.setenv("BROKER_ETRADE_SANDBOX", "true")
+    monkeypatch.setenv("BROKER_ETRADE_USERNAME", "alice")
+    monkeypatch.setenv("BROKER_ETRADE_PASSWORD", "pw-123")
+    monkeypatch.setenv("BROKER_ETRADE_AUTO_REAUTH", "true")
 
     broker_json = tmp_path / "config.json"
     broker_json.write_text("{}", encoding="utf-8")
@@ -80,3 +83,6 @@ def test_load_config_supports_etrade_provider_env(tmp_path: Path, monkeypatch) -
     assert cfg.etrade.consumer_key == "key-123"
     assert cfg.etrade.consumer_secret == "secret-456"
     assert cfg.etrade.sandbox is True
+    assert cfg.etrade.username == "alice"
+    assert cfg.etrade.password == "pw-123"
+    assert cfg.etrade.auto_reauth is True

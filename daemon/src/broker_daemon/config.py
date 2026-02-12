@@ -37,6 +37,9 @@ class ETradeConfig(BaseModel):
     sandbox: bool = False
     account_id_key: str = ""
     token_path: Path = DEFAULT_CONFIG_HOME / "etrade-tokens.json"
+    username: str = ""
+    password: str = ""
+    auto_reauth: bool = False
 
 
 class RiskConfig(BaseModel):
