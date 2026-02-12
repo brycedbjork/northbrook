@@ -6,6 +6,7 @@ from typing import Any
 import pytest
 from typer.testing import CliRunner
 
+import auth
 import audit
 import daemon
 import market
@@ -101,6 +102,7 @@ def test_root_command_surface_contract(runner: CliRunner) -> None:
         "cancel",
         "fills",
         "daemon",
+        "auth",
         "quote",
         "watch",
         "chain",
@@ -124,6 +126,7 @@ def test_root_command_surface_contract(runner: CliRunner) -> None:
     ("args", "expected"),
     [
         (["daemon", "--help"], {"start", "stop", "status", "restart"}),
+        (["auth", "--help"], {"etrade"}),
         (["order", "--help"], {"buy", "sell", "bracket", "status"}),
         (["audit", "--help"], {"orders", "commands", "risk", "export"}),
     ],

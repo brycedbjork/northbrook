@@ -61,3 +61,22 @@ def test_env_overrides_still_win_over_json(tmp_path: Path, monkeypatch) -> None:
     cfg = broker_config.load_config()
 
     assert cfg.gateway.port == 4010
+
+
+def test_load_config_supports_etrade_provider_env(tmp_path: Path, monkeypatch) -> None:
+    _set_runtime_env(monkeypatch, tmp_path)
+    monkeypatch.setenv("BROKER_PROVIDER", "etrade")
+    monkeypatch.setenv("BROKER_ETRADE_CONSUMER_KEY", "key-123")
+    monkeypatch.setenv("BROKER_ETRADE_CONSUMER_SECRET", "secret-456")
+    monkeypatch.setenv("BROKER_ETRADE_SANDBOX", "true")
+
+    broker_json = tmp_path / "config.json"
+    broker_json.write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(broker_config, "DEFAULT_BROKER_CONFIG_JSON", broker_json)
+
+    cfg = broker_config.load_config()
+
+    assert cfg.provider == "etrade"
+    assert cfg.etrade.consumer_key == "key-123"
+    assert cfg.etrade.consumer_secret == "secret-456"
+    assert cfg.etrade.sandbox is True

@@ -28,20 +28,20 @@ broker daemon status
 
 Add new providers as additional columns in this table.
 
-| Feature | Interactive Brokers |
-|---------|:------------------:|
-| Real-time quotes | ✅ |
-| Historical bars | ✅ |
-| Option chains | ✅ |
-| Market orders | ✅ |
-| Limit orders | ✅ |
-| Stop orders | ✅ |
-| Bracket orders | ✅ |
-| Cancel all | ✅ |
-| Positions | ✅ |
-| Balance / P&L | ✅ |
-| Streaming events | ✅ |
-| Risk engine | ✅ |
+| Feature | Interactive Brokers | E*Trade |
+|---------|:------------------:|:-------:|
+| Real-time quotes | ✅ | ✅ |
+| Historical bars | ✅ | ❌ |
+| Option chains | ✅ | ❌ |
+| Market orders | ✅ | ✅ |
+| Limit orders | ✅ | ✅ |
+| Stop orders | ✅ | ✅ |
+| Bracket orders | ✅ | ❌ |
+| Cancel all | ✅ | ❌ |
+| Positions | ✅ | ✅ |
+| Balance / P&L | ✅ | ✅ |
+| Streaming events | ✅ | ❌ |
+| Risk engine | ✅ | ✅ |
 
 ## Storage Defaults
 

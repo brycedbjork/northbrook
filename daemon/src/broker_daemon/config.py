@@ -31,6 +31,14 @@ class GatewayConfig(BaseModel):
     reconnect_backoff_max: int = 30
 
 
+class ETradeConfig(BaseModel):
+    consumer_key: str = ""
+    consumer_secret: str = ""
+    sandbox: bool = False
+    account_id_key: str = ""
+    token_path: Path = DEFAULT_CONFIG_HOME / "etrade-tokens.json"
+
+
 class RiskConfig(BaseModel):
     max_position_pct: float = 10.0
     max_order_value: float = 50_000.0
@@ -71,6 +79,7 @@ class RuntimeConfig(BaseModel):
 class AppConfig(BaseModel):
     provider: str = "ib"
     gateway: GatewayConfig = Field(default_factory=GatewayConfig)
+    etrade: ETradeConfig = Field(default_factory=ETradeConfig)
     risk: RiskConfig = Field(default_factory=RiskConfig)
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
     agent: AgentConfig = Field(default_factory=AgentConfig)
@@ -81,12 +90,13 @@ class AppConfig(BaseModel):
     @classmethod
     def _validate_provider(cls, value: str) -> str:
         provider = value.strip().lower()
-        if provider != "ib":
-            raise ValueError("only provider 'ib' is currently supported")
+        if provider not in {"ib", "etrade"}:
+            raise ValueError("provider must be ib or etrade")
         return provider
 
     def expanded(self) -> "AppConfig":
         clone = self.model_copy(deep=True)
+        clone.etrade.token_path = clone.etrade.token_path.expanduser()
         clone.logging.audit_db = clone.logging.audit_db.expanduser()
         clone.logging.log_file = clone.logging.log_file.expanduser()
         clone.runtime.socket_path = clone.runtime.socket_path.expanduser()
@@ -99,6 +109,7 @@ class AppConfig(BaseModel):
         expanded.runtime.pid_file.parent.mkdir(parents=True, exist_ok=True)
         expanded.logging.audit_db.parent.mkdir(parents=True, exist_ok=True)
         expanded.logging.log_file.parent.mkdir(parents=True, exist_ok=True)
+        expanded.etrade.token_path.parent.mkdir(parents=True, exist_ok=True)
 
 
 def _coerce_env_value(value: str) -> Any:
@@ -138,7 +149,7 @@ def _read_broker_json(path: Path) -> dict[str, Any]:
 def _extract_broker_config(data: dict[str, Any]) -> dict[str, Any]:
     out: dict[str, Any] = {}
     raw_broker = data.get("broker")
-    sections = {"gateway", "risk", "logging", "agent", "output", "runtime"}
+    sections = {"gateway", "etrade", "risk", "logging", "agent", "output", "runtime"}
 
     if isinstance(raw_broker, dict):
         provider = raw_broker.get("provider")
@@ -161,7 +172,7 @@ def _extract_broker_config(data: dict[str, Any]) -> dict[str, Any]:
 
 def _apply_env_overrides(data: dict[str, Any]) -> dict[str, Any]:
     result = dict(data)
-    sections = {"gateway", "risk", "logging", "agent", "output", "runtime"}
+    sections = {"gateway", "etrade", "risk", "logging", "agent", "output", "runtime"}
     for key, raw in os.environ.items():
         if key == "BROKER_PROVIDER":
             result["provider"] = raw.strip()

@@ -24,7 +24,7 @@ from broker_daemon.exceptions import ErrorCode, BrokerError
 from broker_daemon.models.events import Event, EventTopic
 from broker_daemon.models.orders import FillRecord, OrderRequest
 from broker_daemon.protocol import ErrorResponse, EventEnvelope, Request, Response, decode_request, encode_model, frame_payload, read_framed
-from broker_daemon.providers import BrokerProvider, IBProvider
+from broker_daemon.providers import IBProvider
 from broker_daemon.risk.engine import RiskEngine
 from broker_daemon.risk.monitor import ConnectionLossMonitor, HeartbeatMonitor
 
@@ -81,10 +81,12 @@ class DaemonServer:
         self._heartbeat = HeartbeatMonitor(cfg.agent.heartbeat_timeout_seconds)
         self._connection_loss = ConnectionLossMonitor(threshold_seconds=30)
 
-        if cfg.provider == "ib":
-            self._provider: BrokerProvider = IBProvider(cfg.gateway, audit=self._audit, event_cb=self._on_broker_event)
+        if cfg.provider == "etrade":
+            from broker_daemon.providers.etrade import ETradeProvider
+
+            self._provider = ETradeProvider(cfg.etrade, audit=self._audit, event_cb=self._on_broker_event)
         else:
-            raise ValueError(f"unsupported provider '{cfg.provider}'")
+            self._provider = IBProvider(cfg.gateway, audit=self._audit, event_cb=self._on_broker_event)
 
         self._market_data = MarketDataService(self._provider)
         self._orders = OrderManager(
