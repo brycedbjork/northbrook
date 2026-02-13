@@ -1,6 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import {
+  BookOpen,
+  Zap,
+  Lock,
+  Shuffle,
+  BarChart3,
+  ShieldCheck,
+  Copy,
+  Check,
+} from "lucide-react";
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -11,9 +21,19 @@ function CopyButton({ text }: { text: string }) {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       }}
-      className="shrink-0 px-3 py-1.5 text-sm rounded border border-[var(--border)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors cursor-pointer"
+      className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-sm rounded border border-[var(--border)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors cursor-pointer"
     >
-      {copied ? "Copied!" : "Copy"}
+      {copied ? (
+        <>
+          <Check className="w-3.5 h-3.5" />
+          Copied!
+        </>
+      ) : (
+        <>
+          <Copy className="w-3.5 h-3.5" />
+          Copy
+        </>
+      )}
     </button>
   );
 }
@@ -56,37 +76,37 @@ const features = [
     title: "SKILL.md Included",
     description:
       "Ships with a skill file that Codex, Claude Code, and OpenClaw agents read automatically. Your agent knows every command, flag, and workflow without extra prompting.",
-    icon: "📖",
+    icon: BookOpen,
   },
   {
     title: "CLI-First, Agent-Ready",
     description:
       "Every action is a shell command. Agents don't need SDKs, API keys, or custom integrations — just bash. The universal interface AI already knows.",
-    icon: "⚡",
+    icon: Zap,
   },
   {
     title: "Autonomous Execution",
     description:
       "Persistent auth keeps sessions alive 24/7. No manual logins, no token expiry interruptions. Your agent trades while you sleep.",
-    icon: "🔐",
+    icon: Lock,
   },
   {
     title: "Multi-Broker",
     description:
       "Unified commands across E*Trade and Interactive Brokers. One skill file, one interface — agents switch brokers without relearning anything.",
-    icon: "🔀",
+    icon: Shuffle,
   },
   {
     title: "Full Options Support",
     description:
       "Option chains with greeks, expiry filtering, and strike ranges. Agents can evaluate and execute complex derivatives strategies.",
-    icon: "📊",
+    icon: BarChart3,
   },
   {
     title: "Risk Guardrails",
     description:
       "Exposure analysis by symbol, sector, or asset class. Cancel-all for instant flattening. Paper trading mode for safe development. Give agents power with built-in safety valves.",
-    icon: "🛡️",
+    icon: ShieldCheck,
   },
 ];
 
@@ -184,7 +204,7 @@ export default function Home() {
               key={f.title}
               className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6 hover:border-[var(--accent-dim)] transition-colors"
             >
-              <div className="text-2xl mb-3">{f.icon}</div>
+              <f.icon className="w-6 h-6 text-[var(--accent)] mb-3" />
               <h3 className="font-semibold mb-2">{f.title}</h3>
               <p className="text-sm text-[var(--muted)] leading-relaxed">
                 {f.description}
