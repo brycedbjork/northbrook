@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from "react";
 
-const INSTALL_CMD = "curl -fsSL brokercli.com/install | bash";
-
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
   return (
@@ -17,6 +15,39 @@ function CopyButton({ text }: { text: string }) {
     >
       {copied ? "Copied!" : "Copy"}
     </button>
+  );
+}
+
+function InstallWidget() {
+  const [tab, setTab] = useState<"curl" | "pip">("curl");
+  const commands = {
+    curl: "curl -fsSL brokercli.com/install | bash",
+    pip: "pip install broker-cli",
+  };
+
+  return (
+    <div className="inline-block">
+      <div className="flex gap-0 border border-[var(--border)] rounded-t-lg overflow-hidden bg-[var(--card)]">
+        {(["curl", "pip"] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`px-4 py-2 text-sm font-mono cursor-pointer transition-colors ${
+              tab === t
+                ? "bg-[var(--background)] text-[var(--foreground)]"
+                : "text-[var(--muted)] hover:text-[var(--foreground)]"
+            }`}
+          >
+            {t === "curl" ? "One-liner" : "pip"}
+          </button>
+        ))}
+      </div>
+      <div className="flex items-center gap-3 bg-[var(--card)] border border-t-0 border-[var(--border)] rounded-b-lg px-5 py-4 font-mono text-sm sm:text-base">
+        <span className="text-[var(--accent)]">$</span>
+        <code className="select-all">{commands[tab]}</code>
+        <CopyButton text={commands[tab]} />
+      </div>
+    </div>
   );
 }
 
@@ -63,7 +94,7 @@ const features = [
   {
     title: "SKILL.md Included",
     description:
-      "Ships with a skill file that Codex, Claude Code, and other coding agents read automatically. Your agent knows every command, flag, and workflow without extra prompting.",
+      "Ships with a skill file that Codex, Claude Code, and OpenClaw agents read automatically. Your agent knows every command, flag, and workflow without extra prompting.",
     icon: "📖",
   },
   {
@@ -93,7 +124,7 @@ const features = [
   {
     title: "Risk Guardrails",
     description:
-      "Exposure analysis by symbol, sector, or asset class. Cancel-all for instant flattening. Give agents power with built-in safety valves.",
+      "Exposure analysis by symbol, sector, or asset class. Cancel-all for instant flattening. Paper trading mode for safe development. Give agents power with built-in safety valves.",
     icon: "🛡️",
   },
 ];
@@ -116,8 +147,7 @@ export default function Home() {
           <span className="text-[var(--accent)]">a brokerage account</span>
         </h1>
         <p className="text-lg text-[var(--muted)] mb-12 max-w-2xl mx-auto leading-relaxed">
-          Broker APIs exist. SDKs exist. But AI agents don&apos;t use APIs — they
-          use the command line.{" "}
+          Broker APIs exist. SDKs exist. But AI agents use the command line.{" "}
           <span className="text-[var(--foreground)]">broker-cli</span> turns any
           brokerage into shell commands your agent already understands, with a{" "}
           <code className="text-[var(--accent)] bg-[var(--card)] border border-[var(--border)] px-1.5 py-0.5 rounded text-sm">
@@ -126,12 +156,8 @@ export default function Home() {
           that teaches it everything.
         </p>
 
-        {/* Install command */}
-        <div className="inline-flex items-center gap-3 bg-[var(--card)] border border-[var(--border)] rounded-lg px-5 py-4 font-mono text-sm sm:text-base">
-          <span className="text-[var(--accent)]">$</span>
-          <code className="select-all">{INSTALL_CMD}</code>
-          <CopyButton text={INSTALL_CMD} />
-        </div>
+        {/* Install widget */}
+        <InstallWidget />
 
         <div className="mt-6 flex items-center justify-center gap-6 text-sm text-[var(--muted)]">
           <a
@@ -155,8 +181,8 @@ export default function Home() {
           </h2>
           <div className="space-y-4 text-[var(--muted)] leading-relaxed">
             <p>
-              AI coding agents — Codex, Claude Code, Cursor, Devin — interact
-              with the world through shell commands. They can{" "}
+              AI coding agents — Codex, Claude Code, OpenClaw — interact with
+              the world through shell commands. They can{" "}
               <code className="text-[var(--foreground)]">git push</code>, run
               tests, deploy apps. But they can&apos;t trade, because broker APIs
               require HTTP clients, OAuth flows, and SDK setup that agents
@@ -192,7 +218,53 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Agent example - the hero use case */}
+      {/* Supported brokers — moved up per Halo's feedback */}
+      <section className="mb-24">
+        <h2 className="text-2xl font-bold mb-6">Supported Brokers</h2>
+        <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-[var(--border)]">
+                <th className="text-left px-5 py-3 font-semibold">Feature</th>
+                <th className="text-center px-5 py-3 font-semibold">
+                  Interactive Brokers
+                </th>
+                <th className="text-center px-5 py-3 font-semibold">
+                  E*Trade
+                </th>
+              </tr>
+            </thead>
+            <tbody className="text-[var(--muted)]">
+              {[
+                ["Real-time quotes", true, true],
+                ["Option chains + greeks", true, true],
+                ["All order types", true, true],
+                ["Cancel all", true, true],
+                ["Positions & P/L", true, true],
+                ["Exposure analysis", true, true],
+                ["Persistent auth", false, true],
+                ["Streaming events", true, false],
+                ["Historical bars", true, false],
+              ].map(([feature, ib, et]) => (
+                <tr
+                  key={feature as string}
+                  className="border-b border-[var(--border)] last:border-0"
+                >
+                  <td className="px-5 py-2.5">{feature as string}</td>
+                  <td className="text-center px-5 py-2.5">
+                    {ib ? "✅" : "—"}
+                  </td>
+                  <td className="text-center px-5 py-2.5">
+                    {et ? "✅" : "—"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* Agent examples */}
       <section className="mb-24">
         <h2 className="text-2xl font-bold mb-2">See it in action</h2>
         <p className="text-[var(--muted)] mb-6">
@@ -271,7 +343,28 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CLI reference */}
+      {/* Paper trading callout */}
+      <section className="mb-24">
+        <div className="bg-[var(--card)] border border-[var(--accent-dim)] rounded-lg p-6 flex gap-4">
+          <span className="text-2xl shrink-0">🧪</span>
+          <div>
+            <h3 className="font-semibold mb-1">
+              Start with paper trading
+            </h3>
+            <p className="text-sm text-[var(--muted)] leading-relaxed">
+              Worried about giving an agent real money?{" "}
+              <code className="text-[var(--foreground)]">
+                broker daemon start --paper
+              </code>{" "}
+              runs against your broker&apos;s paper trading environment. Develop and
+              test strategies with zero risk, then switch to live when you&apos;re
+              confident.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Commands */}
       <section className="mb-24">
         <h2 className="text-2xl font-bold mb-2">Commands</h2>
         <p className="text-[var(--muted)] mb-6">
@@ -280,6 +373,7 @@ export default function Home() {
         <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-5 font-mono text-sm overflow-x-auto space-y-2">
           {[
             ["broker daemon start", "Start the trading daemon"],
+            ["broker daemon start --paper", "Paper trading mode"],
             ["broker portfolio", "View all positions"],
             ["broker exposure --by symbol", "Portfolio exposure breakdown"],
             [
@@ -298,52 +392,6 @@ export default function Home() {
               <span className="text-[var(--muted)]">— {desc}</span>
             </div>
           ))}
-        </div>
-      </section>
-
-      {/* Supported brokers */}
-      <section className="mb-24">
-        <h2 className="text-2xl font-bold mb-6">Supported Brokers</h2>
-        <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-[var(--border)]">
-                <th className="text-left px-5 py-3 font-semibold">Feature</th>
-                <th className="text-center px-5 py-3 font-semibold">
-                  Interactive Brokers
-                </th>
-                <th className="text-center px-5 py-3 font-semibold">
-                  E*Trade
-                </th>
-              </tr>
-            </thead>
-            <tbody className="text-[var(--muted)]">
-              {[
-                ["Real-time quotes", true, true],
-                ["Option chains + greeks", true, true],
-                ["All order types", true, true],
-                ["Cancel all", true, true],
-                ["Positions & P/L", true, true],
-                ["Exposure analysis", true, true],
-                ["Persistent auth", false, true],
-                ["Streaming events", true, false],
-                ["Historical bars", true, false],
-              ].map(([feature, ib, et]) => (
-                <tr
-                  key={feature as string}
-                  className="border-b border-[var(--border)] last:border-0"
-                >
-                  <td className="px-5 py-2.5">{feature as string}</td>
-                  <td className="text-center px-5 py-2.5">
-                    {ib ? "✅" : "—"}
-                  </td>
-                  <td className="text-center px-5 py-2.5">
-                    {et ? "✅" : "—"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
       </section>
 
