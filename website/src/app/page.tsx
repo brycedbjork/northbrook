@@ -61,40 +61,40 @@ function GitHubLink() {
 
 const features = [
   {
-    title: "Agent-Native",
+    title: "SKILL.md Included",
     description:
-      "Built for AI agents and coding assistants. Ships with SKILL.md so Codex, Claude Code, and other agents can trade autonomously.",
-    icon: "🤖",
+      "Ships with a skill file that Codex, Claude Code, and other coding agents read automatically. Your agent knows every command, flag, and workflow without extra prompting.",
+    icon: "📖",
+  },
+  {
+    title: "CLI-First, Agent-Ready",
+    description:
+      "Every action is a shell command. Agents don't need SDKs, API keys, or custom integrations — just bash. The universal interface AI already knows.",
+    icon: "⚡",
+  },
+  {
+    title: "Autonomous Execution",
+    description:
+      "Persistent auth keeps sessions alive 24/7. No manual logins, no token expiry interruptions. Your agent trades while you sleep.",
+    icon: "🔐",
   },
   {
     title: "Multi-Broker",
     description:
-      "Unified interface for E*Trade and Interactive Brokers. Switch providers without changing your code or agent prompts.",
-    icon: "⚡",
+      "Unified commands across E*Trade and Interactive Brokers. One skill file, one interface — agents switch brokers without relearning anything.",
+    icon: "🔀",
   },
   {
-    title: "Option Chains",
+    title: "Full Options Support",
     description:
-      "Full option chain data with greeks, expiry filtering, and strike ranges. Built for derivatives strategies.",
+      "Option chains with greeks, expiry filtering, and strike ranges. Agents can evaluate and execute complex derivatives strategies.",
     icon: "📊",
   },
   {
-    title: "Exposure Analysis",
+    title: "Risk Guardrails",
     description:
-      "Real-time portfolio exposure grouped by symbol, currency, sector, or asset class. Know your risk at a glance.",
-    icon: "🎯",
-  },
-  {
-    title: "Order Management",
-    description:
-      "Place, monitor, and cancel orders. Bulk cancel-all for open orders when you need to flatten fast.",
-    icon: "📋",
-  },
-  {
-    title: "Persistent Auth",
-    description:
-      "Headless re-authentication keeps sessions alive 24/7. No manual browser logins interrupting your agents.",
-    icon: "🔐",
+      "Exposure analysis by symbol, sector, or asset class. Cancel-all for instant flattening. Give agents power with built-in safety valves.",
+    icon: "🛡️",
   },
 ];
 
@@ -105,19 +105,25 @@ export default function Home() {
 
       {/* Hero */}
       <section className="text-center mb-24">
-        <h1 className="text-5xl sm:text-6xl font-bold tracking-tight mb-4">
-          broker-cli
+        <div className="inline-flex items-center gap-2 bg-[var(--card)] border border-[var(--border)] rounded-full px-4 py-1.5 text-sm text-[var(--muted)] mb-8">
+          <span className="text-[var(--accent)]">●</span>
+          Open source · Works with any AI agent
+        </div>
+
+        <h1 className="text-5xl sm:text-6xl font-bold tracking-tight mb-6">
+          Give your AI agent
+          <br />
+          <span className="text-[var(--accent)]">a brokerage account</span>
         </h1>
-        <p className="text-xl text-[var(--muted)] mb-4 max-w-2xl mx-auto">
-          The trading CLI built for AI agents.
-        </p>
-        <p className="text-base text-[var(--muted)] mb-12 max-w-2xl mx-auto">
-          Connect to brokerages, manage portfolios, and execute strategies — from
-          your terminal or from your agent&apos;s tool calls. Ships with{" "}
-          <code className="text-[var(--accent)] bg-[var(--card)] px-1.5 py-0.5 rounded text-sm">
+        <p className="text-lg text-[var(--muted)] mb-12 max-w-2xl mx-auto leading-relaxed">
+          Broker APIs exist. SDKs exist. But AI agents don&apos;t use APIs — they
+          use the command line.{" "}
+          <span className="text-[var(--foreground)]">broker-cli</span> turns any
+          brokerage into shell commands your agent already understands, with a{" "}
+          <code className="text-[var(--accent)] bg-[var(--card)] border border-[var(--border)] px-1.5 py-0.5 rounded text-sm">
             SKILL.md
           </code>{" "}
-          so coding agents know how to use it out of the box.
+          that teaches it everything.
         </p>
 
         {/* Install command */}
@@ -135,167 +141,167 @@ export default function Home() {
             GitHub ↗
           </a>
           <span>·</span>
-          <span>Open Source</span>
-          <span>·</span>
           <span>Python 3.12+</span>
+          <span>·</span>
+          <span>E*Trade · Interactive Brokers</span>
+        </div>
+      </section>
+
+      {/* Why CLI */}
+      <section className="mb-24">
+        <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-8">
+          <h2 className="text-xl font-bold mb-4">
+            Why a CLI for agentic trading?
+          </h2>
+          <div className="space-y-4 text-[var(--muted)] leading-relaxed">
+            <p>
+              AI coding agents — Codex, Claude Code, Cursor, Devin — interact
+              with the world through shell commands. They can{" "}
+              <code className="text-[var(--foreground)]">git push</code>, run
+              tests, deploy apps. But they can&apos;t trade, because broker APIs
+              require HTTP clients, OAuth flows, and SDK setup that agents
+              don&apos;t do well.
+            </p>
+            <p>
+              <span className="text-[var(--foreground)]">broker-cli</span>{" "}
+              closes that gap. Install it, and your agent can check positions,
+              analyze risk, place orders, and manage a portfolio using the same
+              interface it uses for everything else:{" "}
+              <span className="text-[var(--foreground)]">the terminal</span>.
+            </p>
+          </div>
         </div>
       </section>
 
       {/* Features */}
-      <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-24">
-        {features.map((f) => (
-          <div
-            key={f.title}
-            className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6 hover:border-[var(--accent-dim)] transition-colors"
-          >
-            <div className="text-2xl mb-3">{f.icon}</div>
-            <h3 className="font-semibold mb-2">{f.title}</h3>
-            <p className="text-sm text-[var(--muted)] leading-relaxed">
-              {f.description}
-            </p>
-          </div>
-        ))}
+      <section className="mb-24">
+        <h2 className="text-2xl font-bold mb-8">Built for agents</h2>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {features.map((f) => (
+            <div
+              key={f.title}
+              className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6 hover:border-[var(--accent-dim)] transition-colors"
+            >
+              <div className="text-2xl mb-3">{f.icon}</div>
+              <h3 className="font-semibold mb-2">{f.title}</h3>
+              <p className="text-sm text-[var(--muted)] leading-relaxed">
+                {f.description}
+              </p>
+            </div>
+          ))}
+        </div>
       </section>
 
-      {/* Examples */}
+      {/* Agent example - the hero use case */}
       <section className="mb-24">
-        <h2 className="text-2xl font-bold mb-2">Examples</h2>
+        <h2 className="text-2xl font-bold mb-2">See it in action</h2>
         <p className="text-[var(--muted)] mb-6">
-          Use from the command line, a Python script, or let your AI agent drive.
+          Point your agent at a task. It reads SKILL.md, discovers the commands,
+          and executes.
         </p>
         <div className="space-y-6">
-          {/* CLI examples */}
-          <div>
-            <h3 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider mb-3">
-              Command Line
-            </h3>
-            <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-5 font-mono text-sm overflow-x-auto space-y-3">
-              <div>
-                <p className="text-[var(--muted)]"># Start the daemon</p>
-                <p>
-                  <span className="text-[var(--accent)]">$</span> broker daemon
-                  start
-                </p>
-              </div>
-              <div>
-                <p className="text-[var(--muted)]"># View positions</p>
-                <p>
-                  <span className="text-[var(--accent)]">$</span> broker
-                  portfolio
-                </p>
-              </div>
-              <div>
-                <p className="text-[var(--muted)]">
-                  # Get AAPL call options expiring this month
-                </p>
-                <p>
-                  <span className="text-[var(--accent)]">$</span> broker
-                  option-chain AAPL --type call --expiry 2026-02
-                </p>
-              </div>
-              <div>
-                <p className="text-[var(--muted)]">
-                  # Check exposure by symbol
-                </p>
-                <p>
-                  <span className="text-[var(--accent)]">$</span> broker
-                  exposure --by symbol
-                </p>
-              </div>
-              <div>
-                <p className="text-[var(--muted)]"># Cancel all open orders</p>
-                <p>
-                  <span className="text-[var(--accent)]">$</span> broker
-                  cancel-all
-                </p>
-              </div>
-              <div>
-                <p className="text-[var(--muted)]">
-                  # Place a limit order
-                </p>
-                <p>
-                  <span className="text-[var(--accent)]">$</span> broker order
-                  buy AAPL 100 --limit 185.50
-                </p>
-              </div>
+          <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-5 font-mono text-sm overflow-x-auto">
+            <p className="text-[var(--muted)] mb-3">
+              # Tell your agent to rebalance
+            </p>
+            <p className="mb-4">
+              <span className="text-[var(--accent)]">$</span> codex exec{" "}
+              <span className="text-yellow-500">
+                &quot;Check my portfolio. If any position exceeds 20% of NLV,
+                trim it to 15%.&quot;
+              </span>
+            </p>
+            <div className="border-t border-[var(--border)] pt-3 text-[var(--muted)] space-y-1">
+              <p>
+                <span className="text-blue-400">agent</span> → reading
+                SKILL.md...
+              </p>
+              <p>
+                <span className="text-blue-400">agent</span> → broker exposure
+                --by symbol --json
+              </p>
+              <p>
+                <span className="text-blue-400">agent</span> → TSLA is 34.2% of
+                NLV. Reducing to 15%.
+              </p>
+              <p>
+                <span className="text-blue-400">agent</span> → broker order sell
+                TSLA 142 --limit 248.50
+              </p>
+              <p>
+                <span className="text-[var(--accent)]">✓</span> Order placed.
+                TSLA exposure now 15.1% of NLV.
+              </p>
             </div>
           </div>
 
-          {/* Python SDK */}
-          <div>
-            <h3 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider mb-3">
-              Python SDK
-            </h3>
-            <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-5 font-mono text-sm overflow-x-auto">
-              <pre className="text-[var(--foreground)]">
-                <span className="text-[var(--accent)]">from</span>{" "}
-                broker_cli{" "}
-                <span className="text-[var(--accent)]">import</span> Broker
-                {"\n\n"}
-                broker = Broker()
-                {"\n\n"}
-                <span className="text-[var(--muted)]">
-                  # Get portfolio positions
-                </span>
-                {"\n"}
-                positions = broker.portfolio()
-                {"\n"}
-                <span className="text-[var(--accent)]">for</span> p{" "}
-                <span className="text-[var(--accent)]">in</span> positions:
-                {"\n"}
-                {"    "}print(f<span className="text-yellow-500">
-                  &quot;{"{"}p.symbol{"}"}: {"{"}p.quantity{"}"} @ ${"{"}p.market_value:.2f{"}"}&quot;
-                </span>)
-                {"\n\n"}
-                <span className="text-[var(--muted)]">
-                  # Check exposure
-                </span>
-                {"\n"}
-                exposure = broker.exposure(by=<span className="text-yellow-500">&quot;symbol&quot;</span>)
-                {"\n\n"}
-                <span className="text-[var(--muted)]">
-                  # Flatten everything
-                </span>
-                {"\n"}
-                broker.cancel_all()
-              </pre>
-            </div>
-          </div>
-
-          {/* Agent usage */}
-          <div>
-            <h3 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider mb-3">
-              AI Agent Integration
-            </h3>
-            <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-5 font-mono text-sm overflow-x-auto">
-              <pre className="text-[var(--foreground)]">
-                <span className="text-[var(--muted)]">
-                  # broker-cli ships with SKILL.md — agents read it automatically
-                </span>
-                {"\n"}
-                <span className="text-[var(--muted)]">
-                  # Just point your agent at a trading task:
-                </span>
-                {"\n\n"}
-                <span className="text-[var(--accent)]">$</span> codex exec{" "}
-                <span className="text-yellow-500">
-                  &quot;Check my portfolio exposure. If any single position is &gt;20% of NLV, reduce it to 15%.&quot;
-                </span>
-                {"\n\n"}
-                <span className="text-[var(--muted)]">
-                  # The agent reads SKILL.md, discovers broker-cli commands,
-                </span>
-                {"\n"}
-                <span className="text-[var(--muted)]">
-                  # checks exposure, and places orders to rebalance — autonomously.
-                </span>
-              </pre>
+          <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-5 font-mono text-sm overflow-x-auto">
+            <p className="text-[var(--muted)] mb-3">
+              # Or run a more complex strategy
+            </p>
+            <p className="mb-4">
+              <span className="text-[var(--accent)]">$</span> codex exec{" "}
+              <span className="text-yellow-500">
+                &quot;Find AAPL puts expiring next Friday with delta between
+                -0.30 and -0.15. Buy the one with the best bid-ask spread.&quot;
+              </span>
+            </p>
+            <div className="border-t border-[var(--border)] pt-3 text-[var(--muted)] space-y-1">
+              <p>
+                <span className="text-blue-400">agent</span> → broker
+                option-chain AAPL --type put --expiry 2026-02-20 --json
+              </p>
+              <p>
+                <span className="text-blue-400">agent</span> → Filtering 47
+                contracts: delta range [-0.30, -0.15]...
+              </p>
+              <p>
+                <span className="text-blue-400">agent</span> → Best spread:
+                AAPL 220P 02/20 (delta: -0.22, spread: $0.03)
+              </p>
+              <p>
+                <span className="text-blue-400">agent</span> → broker order buy
+                AAPL250220P220 1 --limit 3.45
+              </p>
+              <p>
+                <span className="text-[var(--accent)]">✓</span> Order placed.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Providers table */}
+      {/* CLI reference */}
+      <section className="mb-24">
+        <h2 className="text-2xl font-bold mb-2">Commands</h2>
+        <p className="text-[var(--muted)] mb-6">
+          Everything an agent needs, nothing it doesn&apos;t.
+        </p>
+        <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-5 font-mono text-sm overflow-x-auto space-y-2">
+          {[
+            ["broker daemon start", "Start the trading daemon"],
+            ["broker portfolio", "View all positions"],
+            ["broker exposure --by symbol", "Portfolio exposure breakdown"],
+            [
+              "broker option-chain AAPL --type call",
+              "Option chains with greeks",
+            ],
+            ["broker order buy AAPL 100 --limit 185", "Place orders"],
+            ["broker cancel-all", "Cancel all open orders"],
+            ["broker orders", "List open orders"],
+            ["broker auth etrade", "Authenticate with a broker"],
+          ].map(([cmd, desc]) => (
+            <div key={cmd} className="flex gap-4">
+              <span className="text-[var(--foreground)] whitespace-nowrap">
+                {cmd}
+              </span>
+              <span className="text-[var(--muted)]">— {desc}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Supported brokers */}
       <section className="mb-24">
         <h2 className="text-2xl font-bold mb-6">Supported Brokers</h2>
         <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg overflow-hidden">
@@ -314,14 +320,13 @@ export default function Home() {
             <tbody className="text-[var(--muted)]">
               {[
                 ["Real-time quotes", true, true],
-                ["Option chains", true, true],
-                ["Market / limit / stop orders", true, true],
-                ["Bracket orders", true, false],
+                ["Option chains + greeks", true, true],
+                ["All order types", true, true],
                 ["Cancel all", true, true],
                 ["Positions & P/L", true, true],
                 ["Exposure analysis", true, true],
-                ["Streaming events", true, false],
                 ["Persistent auth", false, true],
+                ["Streaming events", true, false],
                 ["Historical bars", true, false],
               ].map(([feature, ib, et]) => (
                 <tr
