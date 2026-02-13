@@ -155,13 +155,13 @@ export default function Home() {
 
       {/* Hero Demo */}
       <section className="mb-24">
-        <div className="rounded-lg border border-[var(--border)] overflow-hidden bg-[var(--card)]">
+        <div className="max-w-2xl mx-auto rounded-lg overflow-hidden">
           <video
             autoPlay
             muted
             loop
             playsInline
-            className="w-full"
+            className="w-full rounded-lg"
           >
             <source src="/hero-demo.webm" type="video/webm" />
             <source src="/hero-demo.mp4" type="video/mp4" />
