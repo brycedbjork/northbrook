@@ -142,9 +142,10 @@ export default function Home() {
         </div>
 
         <h1 className="text-5xl sm:text-6xl font-bold tracking-tight mb-6">
-          Give your AI agent
-          <br />
-          <span className="text-[var(--accent)]">a brokerage account</span>
+          Give your AI agent{" "}
+          <span className="text-[var(--accent)]">
+            <br className="sm:hidden" />a brokerage account
+          </span>
         </h1>
         <p className="text-lg text-[var(--muted)] mb-12 max-w-2xl mx-auto leading-relaxed">
           Broker APIs exist. SDKs exist. But AI agents use the command line.{" "}
@@ -264,6 +265,21 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Paper trading */}
+      <section className="mb-24">
+        <div className="flex items-center gap-3 text-sm">
+          <span className="text-lg">🧪</span>
+          <span className="font-semibold">Start safe:</span>
+          <code className="text-[var(--accent)] bg-[var(--card)] border border-[var(--border)] px-2 py-1 rounded font-mono">
+            broker daemon start --paper
+          </code>
+          <span className="text-[var(--muted)]">
+            — full paper trading mode. Test strategies with zero risk, go live
+            when ready.
+          </span>
+        </div>
+      </section>
+
       {/* Agent examples */}
       <section className="mb-24">
         <h2 className="text-2xl font-bold mb-2">See it in action</h2>
@@ -339,27 +355,6 @@ export default function Home() {
                 <span className="text-[var(--accent)]">✓</span> Order placed.
               </p>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Paper trading callout */}
-      <section className="mb-24">
-        <div className="bg-[var(--card)] border border-[var(--accent-dim)] rounded-lg p-6 flex gap-4">
-          <span className="text-2xl shrink-0">🧪</span>
-          <div>
-            <h3 className="font-semibold mb-1">
-              Start with paper trading
-            </h3>
-            <p className="text-sm text-[var(--muted)] leading-relaxed">
-              Worried about giving an agent real money?{" "}
-              <code className="text-[var(--foreground)]">
-                broker daemon start --paper
-              </code>{" "}
-              runs against your broker&apos;s paper trading environment. Develop and
-              test strategies with zero risk, then switch to live when you&apos;re
-              confident.
-            </p>
           </div>
         </div>
       </section>
