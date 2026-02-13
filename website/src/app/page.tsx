@@ -41,7 +41,7 @@ function CopyButton({ text }: { text: string }) {
 function InstallWidget() {
   const [tab, setTab] = useState<"curl" | "pip">("curl");
   const commands = {
-    curl: "curl -fsSL brokercli.com/install | bash",
+    curl: "curl -fsSL https://brokercli.com/install | bash",
     pip: "pip install broker-cli",
   };
 
