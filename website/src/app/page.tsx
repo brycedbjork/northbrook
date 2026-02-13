@@ -62,9 +62,9 @@ function InstallWidget() {
           </button>
         ))}
       </div>
-      <div className="flex items-center gap-3 bg-[var(--card)] border border-t-0 border-[var(--border)] rounded-b-lg px-5 py-4 font-mono text-sm sm:text-base">
-        <span className="text-[var(--accent)]">$</span>
-        <code className="select-all">{commands[tab]}</code>
+      <div className="flex items-center gap-3 bg-[var(--card)] border border-t-0 border-[var(--border)] rounded-b-lg px-4 sm:px-5 py-3 sm:py-4 font-mono text-xs sm:text-base overflow-x-auto">
+        <span className="text-[var(--accent)] shrink-0">$</span>
+        <code className="select-all whitespace-nowrap">{commands[tab]}</code>
         <CopyButton text={commands[tab]} />
       </div>
     </div>
@@ -143,7 +143,7 @@ export default function Home() {
           Open source · Works with any AI agent
         </div>
 
-        <h1 className="text-5xl sm:text-6xl font-bold tracking-tight mb-6">
+        <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6">
           Give your AI agent{" "}
           <span className="text-[var(--accent)]">
             <br className="sm:hidden" />a brokerage account
@@ -162,16 +162,16 @@ export default function Home() {
         {/* Install widget */}
         <InstallWidget />
 
-        <div className="mt-6 flex items-center justify-center gap-6 text-sm text-[var(--muted)]">
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-[var(--muted)]">
           <a
             href="https://github.com/north-brook/broker-cli"
             className="hover:text-[var(--foreground)] transition-colors"
           >
             GitHub ↗
           </a>
-          <span>·</span>
+          <span className="hidden sm:inline">·</span>
           <span>Python 3.12+</span>
-          <span>·</span>
+          <span className="hidden sm:inline">·</span>
           <span>E*Trade · Interactive Brokers</span>
         </div>
       </section>
@@ -231,8 +231,8 @@ export default function Home() {
       {/* Supported brokers — moved up per Halo's feedback */}
       <section className="mb-24">
         <h2 className="text-2xl font-bold mb-6">Supported Brokers</h2>
-        <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg overflow-x-auto">
+          <table className="w-full text-sm min-w-[400px]">
             <thead>
               <tr className="border-b border-[var(--border)]">
                 <th className="text-left px-5 py-3 font-semibold">Feature</th>
@@ -276,15 +276,14 @@ export default function Home() {
 
       {/* Paper trading */}
       <section className="mb-24">
-        <div className="flex items-center gap-3 text-sm">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm">
           <span className="text-lg">🧪</span>
           <span className="font-semibold">Start safe:</span>
-          <code className="text-[var(--accent)] bg-[var(--card)] border border-[var(--border)] px-2 py-1 rounded font-mono">
+          <code className="text-[var(--accent)] bg-[var(--card)] border border-[var(--border)] px-2 py-1 rounded font-mono text-xs sm:text-sm">
             broker daemon start --paper
           </code>
           <span className="text-[var(--muted)]">
-            — full paper trading mode. Test strategies with zero risk, go live
-            when ready.
+            — paper trading mode. Test strategies risk-free.
           </span>
         </div>
       </section>
@@ -297,7 +296,7 @@ export default function Home() {
           and executes.
         </p>
         <div className="space-y-6">
-          <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-5 font-mono text-sm overflow-x-auto">
+          <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4 sm:p-5 font-mono text-xs sm:text-sm overflow-x-auto">
             <p className="text-[var(--muted)] mb-3">
               # Tell your agent to rebalance
             </p>
@@ -332,7 +331,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-5 font-mono text-sm overflow-x-auto">
+          <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4 sm:p-5 font-mono text-xs sm:text-sm overflow-x-auto">
             <p className="text-[var(--muted)] mb-3">
               # Or run a more complex strategy
             </p>
@@ -374,7 +373,7 @@ export default function Home() {
         <p className="text-[var(--muted)] mb-6">
           Everything an agent needs, nothing it doesn&apos;t.
         </p>
-        <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-5 font-mono text-sm overflow-x-auto space-y-2">
+        <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4 sm:p-5 font-mono text-xs sm:text-sm space-y-2">
           {[
             ["broker daemon start", "Start the trading daemon"],
             ["broker daemon start --paper", "Paper trading mode"],
@@ -389,11 +388,12 @@ export default function Home() {
             ["broker orders", "List open orders"],
             ["broker auth etrade", "Authenticate with a broker"],
           ].map(([cmd, desc]) => (
-            <div key={cmd} className="flex gap-4">
-              <span className="text-[var(--foreground)] whitespace-nowrap">
+            <div key={cmd} className="flex flex-col sm:flex-row sm:gap-4">
+              <span className="text-[var(--foreground)]">
                 {cmd}
               </span>
-              <span className="text-[var(--muted)]">— {desc}</span>
+              <span className="text-[var(--muted)] hidden sm:inline">— {desc}</span>
+              <span className="text-[var(--muted)] text-xs sm:hidden">{desc}</span>
             </div>
           ))}
         </div>
