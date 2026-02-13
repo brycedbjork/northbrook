@@ -133,6 +133,22 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Hero Demo */}
+      <section className="mb-24">
+        <div className="rounded-lg border border-[var(--border)] overflow-hidden bg-[var(--card)]">
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="w-full"
+          >
+            <source src="/hero-demo.webm" type="video/webm" />
+            <source src="/hero-demo.mp4" type="video/mp4" />
+          </video>
+        </div>
+      </section>
+
       {/* Why CLI */}
       <section className="mb-24">
         <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-8">
