@@ -1,0 +1,133 @@
+---
+title: "What is SKILL.md? How AI Agents Learn New Tools"
+description: "SKILL.md is a file-based pattern for teaching AI agents how to use CLI tools. Here's how it works and why it's better than custom tool definitions."
+date: "2026-02-14"
+author: "North Brook"
+tags: ["skill-md", "ai-agents", "developer-tools", "agent-architecture"]
+---
+
+When you give an AI agent a new tool, it needs to learn what the tool does. Today, most people solve this with custom tool definitions, function calling schemas, or carefully engineered system prompts.
+
+There's a simpler way: **a file**.
+
+## The pattern
+
+`SKILL.md` is a markdown file that ships with a CLI tool. It describes every command, flag, workflow, and example in a format that AI coding agents read naturally — because they already know how to read documentation.
+
+When an agent encounters a SKILL.md file in its working directory, it reads it like a developer reads a README. It learns:
+- What commands are available
+- What flags and options each command accepts
+- What the expected inputs and outputs look like
+- Common workflows and patterns
+- Error handling and edge cases
+
+No API registration. No JSON schema. No custom integration code.
+
+## Why file-based discovery works
+
+AI coding agents like Codex, Claude Code, and OpenClaw interact with the world through **files and shell commands**. That's their native interface. When you give an agent a tool, the most natural way to teach it is through the same interface:
+
+1. **Files** — the agent reads documentation
+2. **Commands** — the agent runs shell commands
+3. **Output** — the agent reads stdout/stderr
+
+SKILL.md fits this model perfectly. The agent reads the file (step 1), learns the commands (step 2), and interprets results (step 3). No middleware, no adapters, no glue code.
+
+Compare this to the alternatives:
+
+| Approach | Setup required | Agent compatibility | Maintenance |
+|---|---|---|---|
+| Custom tool definitions | Write schemas per agent framework | Framework-specific | Update schemas when tool changes |
+| Function calling | Define JSON schemas | API-specific | Sync schemas with implementation |
+| System prompt injection | Write descriptions per agent | Fragile, token-heavy | Rewrite when tool changes |
+| **SKILL.md** | **Ship a file** | **Any agent that reads files** | **Update one file** |
+
+## How broker-cli implements it
+
+broker-cli is the reference implementation of this pattern. Its SKILL.md describes the complete trading interface:
+
+```markdown
+# broker-cli
+
+## Commands
+
+### broker portfolio
+View all positions in your account.
+
+Flags:
+- `--json` — Output as JSON
+- `--broker <name>` — Target a specific broker
+
+Example:
+$ broker portfolio
+Symbol  Qty   Value      P/L
+AAPL    100   $19,240    +$720
+NVDA    50    $47,100    +$2,100
+```
+
+When an agent reads this, it immediately knows:
+- There's a `broker portfolio` command
+- It accepts `--json` and `--broker` flags
+- The output is a table with specific columns
+- It can parse the JSON output for programmatic use
+
+Multiply this across every command — quotes, orders, options, risk management — and the agent has complete knowledge of the trading interface from a single file.
+
+## Writing a SKILL.md for your own tool
+
+If you build CLI tools, you can adopt this pattern today. Here's the structure:
+
+```markdown
+# your-tool
+
+Brief description of what the tool does.
+
+## Setup
+How to install and configure.
+
+## Commands
+
+### your-tool command-name
+What this command does.
+
+Flags:
+- `--flag-name` — Description (default: value)
+
+Example:
+$ your-tool command-name --flag-name value
+Expected output here
+
+## Workflows
+
+### Common task name
+Step-by-step for accomplishing a common goal.
+
+## Errors
+Common errors and how to handle them.
+```
+
+**Tips for good SKILL.md files:**
+- **Be explicit about flags and defaults** — agents need to know what's optional vs required
+- **Include realistic examples** — show actual command invocations and their output
+- **Document error cases** — agents need to handle failures gracefully
+- **Keep it focused** — only include what an agent needs to use the tool, not implementation details
+- **Use JSON output examples** — agents parse structured data more reliably than text tables
+
+## The bigger picture
+
+SKILL.md is a bet on a simple idea: **the best way to teach an AI agent a new capability is the same way you'd teach a developer — with good documentation.**
+
+As AI agents become more capable and autonomous, the tools they use need discoverable, self-documenting interfaces. SKILL.md is one approach to that future.
+
+broker-cli ships with SKILL.md because we believe agents should be able to pick up any tool and start using it immediately — the way a developer picks up a well-documented CLI.
+
+## Try it
+
+Install broker-cli and look at the SKILL.md file:
+
+```bash
+curl -fsSL https://brokercli.com/install | bash
+cat $(which broker | xargs dirname)/../SKILL.md
+```
+
+Or check out the [GitHub repo](https://github.com/north-brook/broker-cli) and the [full reference](https://brokercli.com/reference).

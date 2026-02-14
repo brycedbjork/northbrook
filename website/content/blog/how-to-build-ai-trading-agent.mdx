@@ -1,0 +1,210 @@
+---
+title: "How to Build an AI Trading Agent in 2026"
+description: "A step-by-step guide to building an autonomous trading agent using broker-cli, SKILL.md, and AI coding agents like Codex and Claude Code."
+date: "2026-02-14"
+author: "North Brook"
+tags: ["tutorial", "agentic-trading", "ai-agents", "codex", "claude-code"]
+---
+
+Traditional trading bots follow rules. AI trading agents *reason*.
+
+A bot says: "If RSI > 70, sell." An agent says: "NVDA is 47% of my portfolio, earnings are next week, and implied volatility is elevated — I should trim the position and maybe hedge with puts."
+
+The difference is huge. But building an agent that can actually *execute* trades has been painful — until now.
+
+This guide walks you through building an autonomous trading agent from scratch using **broker-cli** and an AI coding agent (Codex, Claude Code, or OpenClaw).
+
+## What you'll build
+
+A trading agent that can:
+- Monitor your portfolio in real-time
+- Analyze exposure and risk
+- Rebalance positions based on rules you define
+- Screen options contracts
+- Execute trades autonomously
+
+Total setup time: about 10 minutes.
+
+## Prerequisites
+
+- Python 3.12+
+- A brokerage account (Interactive Brokers or E*Trade)
+- An AI coding agent (Codex, Claude Code, or OpenClaw)
+
+Don't have a brokerage account? You can use **paper trading mode** to follow along with fake money.
+
+## Step 1: Install broker-cli
+
+One command:
+
+```bash
+curl -fsSL https://brokercli.com/install | bash
+```
+
+This clones the repo, installs dependencies, and adds `broker` to your PATH.
+
+Verify it worked:
+
+```bash
+broker --version
+```
+
+## Step 2: Start the daemon
+
+broker-cli runs a background daemon that maintains your brokerage connection. For development, start in paper trading mode:
+
+```bash
+broker daemon start --paper
+```
+
+For a live account:
+
+```bash
+broker daemon start
+```
+
+You'll see: `✓ Connected to Interactive Brokers`
+
+The daemon handles authentication, reconnection, and session management. Your agent never deals with OAuth flows or token refreshes.
+
+## Step 3: Explore manually
+
+Before handing control to an agent, try some commands yourself:
+
+```bash
+# Check your portfolio
+broker portfolio
+
+# See exposure breakdown
+broker exposure --by symbol
+
+# Get a quote
+broker quote AAPL
+
+# Look at option chains
+broker option-chain AAPL --type call --expiry 2026-03-20
+
+# Check risk limits
+broker risk check
+```
+
+Every command outputs clean, structured data. When you add `--json`, you get machine-readable output that agents parse easily.
+
+## Step 4: Give your agent SKILL.md
+
+This is where broker-cli is different from every other trading tool.
+
+broker-cli ships with a `SKILL.md` file — a structured document that describes every command, flag, workflow, and example. AI coding agents read this file automatically and learn the full trading interface without any custom tool definitions or prompt engineering.
+
+If you're using **Codex**, SKILL.md goes in your project root. For **Claude Code**, same thing. For **OpenClaw**, it's loaded as a skill.
+
+The agent reads it once, then knows how to:
+- Check positions and P/L
+- Analyze exposure by symbol, sector, or asset class
+- Place any order type (market, limit, stop, bracket)
+- Screen option chains with greeks
+- Manage risk limits
+- Cancel orders and halt trading
+
+No integration code. No API wrappers. No boilerplate.
+
+## Step 5: Your first autonomous task
+
+Start simple. Ask your agent to check your portfolio:
+
+```bash
+codex "Check my portfolio and summarize my positions, total value, and P/L"
+```
+
+The agent reads SKILL.md, discovers the `broker portfolio` command, runs it, and summarizes the output in plain English.
+
+## Step 6: Portfolio monitoring
+
+Now make it useful. Ask your agent to analyze risk:
+
+```bash
+codex "Check my portfolio exposure by symbol. Flag any position that exceeds 30% of net liquidation value."
+```
+
+The agent runs `broker exposure --by symbol --json`, parses the output, and identifies overweight positions. No code to write — it figured out the workflow from SKILL.md.
+
+## Step 7: Autonomous rebalancing
+
+Here's where it gets powerful:
+
+```bash
+codex "Check exposure. If any position exceeds 40% of NLV, trim it to 30%. Use limit orders 0.5% below market price."
+```
+
+The agent:
+1. Reads SKILL.md
+2. Runs `broker exposure --by symbol --json`
+3. Identifies NVDA at 47.8% of NLV
+4. Calculates shares to sell
+5. Gets the current price with `broker quote NVDA --json`
+6. Places a limit order: `broker order sell NVDA 12 --limit 936.29`
+7. Confirms the fill
+
+All autonomously. You defined the *intent* — "trim anything over 40% to 30%" — and the agent figured out the *execution*.
+
+## Step 8: Options screening
+
+Agents are particularly good at options because the analysis is complex but the execution is mechanical:
+
+```bash
+codex "Find AAPL puts expiring in the next 2 weeks with delta between -0.30 and -0.15. Show me the 3 with the tightest bid-ask spreads."
+```
+
+The agent queries the option chain, filters by greeks, calculates spreads, and presents the results. If you want it to execute:
+
+```bash
+codex "Buy 1 contract of the AAPL put with the tightest spread from that list."
+```
+
+## Safety considerations
+
+Giving an agent access to real money requires safety guardrails:
+
+**Start with paper trading.** Always. `broker daemon start --paper` gives you the full experience with zero risk. Develop and test your strategies here before going live.
+
+**Use risk limits.** broker-cli has built-in risk management:
+
+```bash
+# Check if an order would violate risk limits
+broker risk check
+
+# Set exposure limits
+broker risk set --max-position-pct 25
+
+# Emergency stop — cancel everything
+broker risk halt
+```
+
+**Read-only first.** Start your agent with read-only commands (portfolio, exposure, quotes) before enabling order placement. Watch how it reasons about your portfolio before trusting it to act.
+
+**Review the logs.** broker-cli logs every command and order. Review them regularly:
+
+```bash
+broker audit orders --since 7d
+broker audit commands --since 1d
+```
+
+## What's next
+
+Once your agent is running reliably in paper trading:
+
+1. **Backtest your strategies** — Review the agent's decisions over time. Would you have made the same calls?
+2. **Add complexity gradually** — Start with simple rebalancing, then add options, multi-leg strategies, event-driven triggers
+3. **Go live with small size** — Switch to a live account with modest position sizes. Scale up as you build confidence.
+4. **Combine with other tools** — Your agent can also write analysis to files, commit trading logs to git, send notifications. The CLI is one tool in a larger toolkit.
+
+## Get started
+
+```bash
+curl -fsSL https://brokercli.com/install | bash
+broker daemon start --paper
+```
+
+Read the [full command reference](https://brokercli.com/reference) or check out the [GitHub repo](https://github.com/north-brook/broker-cli).
+
+Give your agent a brokerage account. See what it does.
