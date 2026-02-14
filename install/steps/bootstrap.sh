@@ -20,7 +20,8 @@ ensure_source_checkout() {
     git -C "${BROKER_SOURCE_DIR}" reset --hard origin/main || true
   else
     rm -rf "${BROKER_SOURCE_DIR}"
-    git clone --depth=1 "${BROKER_REPO}" "${BROKER_SOURCE_DIR}"
+    git clone --depth=1 --filter=blob:none --sparse "${BROKER_REPO}" "${BROKER_SOURCE_DIR}"
+    git -C "${BROKER_SOURCE_DIR}" sparse-checkout set --no-cone '/*' '!website/'
   fi
 
   if [[ "${ORIG_ARGC:-0}" -gt 0 ]]; then
